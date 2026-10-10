@@ -16,7 +16,7 @@ timezone: Asia/Shanghai
 
 title: 非鱼随记 # the main title
 
-tagline: 记录技术成长的每一步 # it will display as the subtitle
+tagline: 记录每一步成长 # it will display as the subtitle
 
 description: >- # used by seo meta and the atom feed
   非鱼的个人技术博客,记录学习与实践中的思考与笔记。
