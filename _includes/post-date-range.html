@@ -1,0 +1,7 @@
+{%- assign post = include.post -%}
+{%- assign last_modified_at = post.last_modified_at | default: post.date -%}
+<span class="post-date-range">
+  首发时间 {% include datetime.html date=post.date tooltip=include.tooltip lang=include.lang %}
+  <span aria-hidden="true"> → </span>
+  最新修改时间 {% include datetime.html date=last_modified_at tooltip=include.tooltip lang=include.lang %}
+</span>
