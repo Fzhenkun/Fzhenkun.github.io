@@ -31,3 +31,6 @@ The post file is already written; retry only the git steps manually or re-run wi
 
 ## E7 UnicodeDecodeError
 Source is not UTF-8. Ask the user to re-save as UTF-8.
+
+## E8 `[WARN] remote image download failed`
+Tell the user which URL failed and the reported reason. The original URL remains in the post, so it may still load externally but is not guaranteed to work after publishing. Check the URL, access restrictions, and whether the response is an image under 20 MiB; then re-run. If the post already exists, ask before using `--force`.

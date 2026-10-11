@@ -3,17 +3,26 @@
 import argparse
 import datetime as dt
 import hashlib
+import mimetypes
 import re
 import shutil
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 from urllib.parse import quote, unquote
+from urllib.parse import urlsplit
 
 DEFAULT_BLOG = str(Path(__file__).resolve().parents[4])  # <repo>/.github/skills/<name>/scripts/
+MAX_IMAGE_BYTES = 20 * 1024 * 1024
+IMAGE_TIMEOUT_SECONDS = 20
 IMG_MD = re.compile(r'(!\[[^\]]*\]\()(<[^>]+>|[^)\s]+)((?:\s+"[^"]*")?\))')
 IMG_HTML = re.compile(r'(<img\b[^>]*?\bsrc=["\'])([^"\']+)(["\'])', re.I)
 FENCE = re.compile(r"^\s*(```|~~~)")
+# WYSIWYG exports (e.g. Yuque) wrap plain text in <font color/background-color> spans;
+# Chirpy has no use for them, so unwrap to the inner text and keep any surrounding backticks intact.
+FONT_TAG = re.compile(r"<font\b[^>]*>(.*?)</font>", re.I)
 
 
 def split_front_matter(text):
@@ -43,10 +52,41 @@ def make_slug(name):
 
 
 def is_remote(p):
-    return re.match(r"^(https?:|data:|//|/|#)", p) is not None
+    return re.match(r"^(https?:|data:|//|/|#)", p, re.I) is not None
 
 
-def convert(src, blog, args):
+def remote_filename(url, content_type=""):
+    parsed = urlsplit(url)
+    basename = unquote(parsed.path).rsplit("/", 1)[-1]
+    stem = Path(basename).stem
+    suffix = Path(basename).suffix
+    stem = re.sub(r"[^A-Za-z0-9._-]+", "-", stem).strip(".-_") or "image"
+    if not re.fullmatch(r"\.[A-Za-z0-9]{1,10}", suffix):
+        suffix = ""
+    if not suffix and content_type:
+        suffix = mimetypes.guess_extension(content_type, strict=False) or ""
+        if suffix == ".jpe":
+            suffix = ".jpg"
+    suffix = suffix.lower() or ".img"
+    digest = hashlib.sha256(url.encode("utf-8")).hexdigest()[:10]
+    return f"{stem[:80]}-{digest}{suffix}"
+
+
+def download_remote_image(url):
+    request = urllib.request.Request(url, headers={"User-Agent": "blog-post-publisher/1.0"})
+    with urllib.request.urlopen(request, timeout=IMAGE_TIMEOUT_SECONDS) as response:
+        content_type = response.headers.get_content_type().lower()
+        data = response.read(MAX_IMAGE_BYTES + 1)
+    if len(data) > MAX_IMAGE_BYTES:
+        raise ValueError(f"image exceeds {MAX_IMAGE_BYTES // (1024 * 1024)} MiB limit")
+    if not data:
+        raise ValueError("image response is empty")
+    if not content_type.startswith("image/"):
+        raise ValueError(f"response content type is not an image: {content_type}")
+    return data, content_type
+
+
+def convert(src, blog, args, dry_run=False):
     text = src.read_text(encoding="utf-8-sig").replace("\r\n", "\n")
     raw_fm, body = split_front_matter(text)
     fm, extra = parse_fm(raw_fm)
@@ -75,19 +115,50 @@ def convert(src, blog, args):
     slug = args.slug or make_slug(src.stem)
 
     img_dir = blog / "assets" / "img" / "posts" / slug
-    copied, missing = [], []
+    copied, warnings, remote_count = [], [], 0
 
     def fix(path_str):
+        nonlocal remote_count
         p = path_str.strip("<>")
+        if re.match(r"^data:", p, re.I) or p.startswith(("/", "#")):
+            return path_str
+        if p.startswith("//"):
+            url = "https:" + p
+        elif re.match(r"^https?://", p, re.I):
+            url = p
+        else:
+            url = None
+
+        if url:
+            remote_count += 1
+            parsed = urlsplit(url)
+            if parsed.scheme.lower() not in ("http", "https") or not parsed.netloc:
+                warnings.append(f"remote image URL is invalid: {url}")
+                return path_str
+            download_url = parsed._replace(fragment="").geturl()
+            if dry_run:
+                filename = remote_filename(download_url)
+            else:
+                try:
+                    data, content_type = download_remote_image(download_url)
+                except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
+                    warnings.append(f"remote image download failed: {url} ({exc})")
+                    return path_str
+                filename = remote_filename(download_url, content_type)
+                img_dir.mkdir(parents=True, exist_ok=True)
+                (img_dir / filename).write_bytes(data)
+            copied.append(filename)
+            return f"/assets/img/posts/{slug}/{quote(filename)}"
+
         if is_remote(p):
             return path_str
         cand = Path(unquote(p))
         if not cand.is_absolute():
             cand = src.parent / cand
         if not cand.is_file():
-            missing.append(p)
+            warnings.append(f"image not found: {p}")
             return path_str
-        if not args.dry_run:
+        if not dry_run:
             img_dir.mkdir(parents=True, exist_ok=True)
             shutil.copy2(cand, img_dir / cand.name)
         copied.append(cand.name)
@@ -100,8 +171,11 @@ def convert(src, blog, args):
         if not in_fence:
             line = IMG_MD.sub(lambda m: m.group(1) + fix(m.group(2)) + m.group(3), line)
             line = IMG_HTML.sub(lambda m: m.group(1) + fix(m.group(2)) + m.group(3), line)
+            line = FONT_TAG.sub(lambda m: m.group(1), line)
         res.append(line)
     body_out = "\n".join(res).lstrip("\n")
+    # Collapse blank lines left behind by now-empty <font></font> tags.
+    body_out = re.sub(r"\n{3,}", "\n\n", body_out)
 
     cats = args.categories or fm.get("categories") or "[随记]"
     tags = args.tags or fm.get("tags") or "[]"
@@ -117,7 +191,7 @@ def convert(src, blog, args):
         head.append("mermaid: true")
     head += extra + ["---", ""]
     target = blog / "_posts" / f"{day}-{slug}.md"
-    return target, "\n".join(head) + "\n" + body_out.rstrip("\n") + "\n", copied, missing
+    return target, "\n".join(head) + "\n" + body_out.rstrip("\n") + "\n", copied, warnings, remote_count
 
 
 def git(blog, *a):
@@ -152,16 +226,21 @@ def main():
 
     written = []
     for f in files:
-        target, content, copied, missing = convert(f, blog, args)
+        target, content, copied, warnings, remote_count = convert(f, blog, args, dry_run=True)
         if target.exists() and not args.force:
             print(f"[SKIP] exists (use --force): {target}")
             continue
-        print(f"[OK] {f.name} -> {target.name}; images copied: {len(copied)}")
-        for m in missing:
-            print(f"[WARN] image not found: {m}")
-        if not args.dry_run:
+        if args.dry_run:
+            print(f"[OK] {f.name} -> {target.name}; images to copy/download: {len(copied)}")
+            if remote_count:
+                print(f"[INFO] remote images to download: {remote_count}")
+        else:
+            target, content, copied, warnings, _ = convert(f, blog, args)
+            print(f"[OK] {f.name} -> {target.name}; images copied/downloaded: {len(copied)}")
             target.write_text(content, encoding="utf-8", newline="\n")
             written.append(target)
+        for warning in warnings:
+            print(f"[WARN] {warning}")
 
     if args.push and written and not args.dry_run:
         git(blog, "add", "-A")
