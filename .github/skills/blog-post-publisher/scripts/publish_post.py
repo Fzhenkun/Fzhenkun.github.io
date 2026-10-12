@@ -36,7 +36,7 @@ def split_front_matter(text):
 def parse_fm(raw):
     fm, extra = {}, []
     for line in raw.splitlines():
-        m = re.match(r"^(title|date|categories|tags|math|mermaid):\s*(.*)$", line)
+        m = re.match(r"^(title|date|categories|tags|math|mermaid|published):\s*(.*)$", line)
         if m:
             fm[m.group(1)] = m.group(2).strip()
         elif line.strip():
@@ -189,6 +189,9 @@ def convert(src, blog, args, dry_run=False):
         head.append("math: true")
     if fm.get("mermaid") or re.search(r"^```mermaid", body_out, re.M):
         head.append("mermaid: true")
+    # `published: false` tells Jekyll to skip the post entirely (no page, no listing, no feed/search entry).
+    if args.hidden or fm.get("published", "").strip().lower() == "false":
+        head.append("published: false")
     head += extra + ["---", ""]
     target = blog / "_posts" / f"{day}-{slug}.md"
     return target, "\n".join(head) + "\n" + body_out.rstrip("\n") + "\n", copied, warnings, remote_count
@@ -210,6 +213,7 @@ def main():
     ap.add_argument("--categories", help='e.g. "[C++, 编译优化]"')
     ap.add_argument("--tags", help='e.g. "[cpp, build]"')
     ap.add_argument("--force", action="store_true", help="overwrite existing post")
+    ap.add_argument("--hidden", action="store_true", help="add published: false (post is kept in the repo but Jekyll skips it entirely: no page, no listing, no feed/search entry)")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--push", action="store_true", help="git add/commit/push (needs user approval)")
     args = ap.parse_args()

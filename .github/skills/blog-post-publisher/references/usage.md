@@ -1,7 +1,7 @@
 # Usage
 
 ```powershell
-python scripts/publish_post.py <src> [--blog-dir DIR] [--slug S] [--date D] [--categories "[A, B]"] [--tags "[x]"] [--force] [--dry-run] [--push]
+python scripts/publish_post.py <src> [--blog-dir DIR] [--slug S] [--date D] [--categories "[A, B]"] [--tags "[x]"] [--force] [--hidden] [--dry-run] [--push]
 ```
 
 `<src>` is a file or a directory (non-recursive, `*.md`). `--blog-dir` defaults to the repository root (resolved from the script location).
@@ -15,6 +15,7 @@ python scripts/publish_post.py <src> [--blog-dir DIR] [--slug S] [--date D] [--c
 | File name | `_posts/YYYY-MM-DD-slug.md`; slug from ASCII filename, else `post-<hash>` (use `--slug` for readable URLs) |
 | Categories/tags | Args > Front Matter > `[随记]` / `[]`; must be `[a, b]` form |
 | Math / Mermaid | `math: true` if `$..$`/`$$` outside code fences; `mermaid: true` if a mermaid fence exists |
+| Visibility | `--hidden`, or a source Front Matter `published: false`, adds `published: false` to the post. Jekyll then skips it entirely (no generated page, not in home/archive/categories/tags/search/RSS); re-publish later by removing that line (or re-running without `--hidden` and `--force`). |
 | Images | Local `![](x)` and `<img src>` copied to `assets/img/posts/<slug>/`; HTTP(S) and protocol-relative image URLs downloaded there with stable URL-hash filenames. Links are rewritten to `/assets/img/posts/<slug>/<name>` so the published site serves local copies. `data:`, root-relative, and fragment sources stay unchanged. |
 | `<font>` cleanup | `<font style="...">text</font>` spans (common in Yuque/WYSIWYG exports) are unwrapped to their inner text outside code fences, so styled-but-empty markup never leaks into the post as literal tags or stray inline code. |
 | Other Front Matter keys | Preserved |

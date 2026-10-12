@@ -28,6 +28,22 @@ Jekyll + Chirpy,部署于 GitHub Pages:<https://fzhenkun.github.io>
 
 在 `_posts/` 新建 `YYYY-MM-DD-slug.md`,push 即可。文章页和首页会显示“首发时间 → 最新修改时间”(精确到分钟);最新修改时间取该文章的 Git 最新提交时间,无 Git 记录时回退为首发时间。公式在 Front Matter 加 `math: true`。
 
+## 隐藏文章(不对外展示)
+
+在某篇文章的 Front Matter 里加一行 `published: false`,即可让它**完全不出现**在 `fzhenkun.github.io` 上:不生成该文章的页面(直接访问原链接会 404)、不出现在首页、归档、分类、标签、搜索索引和 RSS 中。
+
+```yaml
+---
+title: 这篇先不发布
+date: 2026-10-10 22:44:06 +0800
+categories: [web]
+tags: [website-building]
+published: false
+---
+```
+
+文章仍保留在仓库 `_posts/` 目录中(方便自己继续编辑),只是构建时被跳过;把 `published: false` 删掉或改成 `true` 并重新 push,即可重新上线。本地预览(`jekyll s`)默认同样会跳过这类文章,若临时想在本地看效果,可运行 `bundle exec jekyll s -l --unpublished`。
+
 ## 访问统计(GoatCounter)
 
 注册 <https://www.goatcounter.com>,把站点代码填入 `_config.yml` 的 `analytics.goatcounter.id`;
