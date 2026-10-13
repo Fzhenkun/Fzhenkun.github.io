@@ -144,11 +144,12 @@ published: false
 - unique_ptr、shared_ptr、weak_ptr 区别？
 - shared_ptr 的引用计数原理？
 - weak_ptr 解决什么问题？
+- 什么是 shared_ptr 循环引用？如何解决？
 - shared_ptr 是线程安全的吗？
 
 面试表达重点：
 
-> unique_ptr 表达独占所有权，不能拷贝但可以移动；shared_ptr 表达共享所有权，通过引用计数释放资源；weak_ptr 不增加引用计数，主要用于解决 shared_ptr 循环引用。shared_ptr 的引用计数增减通常是线程安全的，但其管理对象本身的访问不是天然线程安全。
+> unique_ptr 表达独占所有权，不能拷贝但可以移动；shared_ptr 表达共享所有权，通过引用计数释放资源；weak_ptr 不增加引用计数，主要用于观察对象和解决 shared_ptr 循环引用。shared_ptr 的引用计数增减通常是线程安全的，但其管理对象本身的访问不是天然线程安全。
 
 ### 8. 移动语义和右值引用
 
@@ -441,7 +442,51 @@ delete p; // Base 析构非 virtual 时，Derived 析构可能不被调用
 
 > 默认优先考虑 unique_ptr，因为所有权最清晰。确实需要共享生命周期时再用 shared_ptr。出现双向引用、缓存观察对象等场景时，用 weak_ptr 避免循环引用。
 
-### 17. shared_ptr 的线程安全怎么理解？
+### 17. 什么是 shared_ptr 循环引用？如何解决？
+
+循环引用是指两个或多个对象通过 `shared_ptr` 互相持有，形成一个引用闭环。例如：
+
+```cpp
+struct Node {
+    std::shared_ptr<Node> next;
+    ~Node() { std::cout << "Node destroyed\n"; }
+};
+
+auto a = std::make_shared<Node>();
+auto b = std::make_shared<Node>();
+a->next = b;
+b->next = a;
+```
+
+此时 `a` 和 `b` 的外部 `shared_ptr` 离开作用域后，各自的引用计数都只会从 2 降到 1，仍然被对方成员持有，引用计数无法归零，析构函数不会执行，最终造成内存泄漏。
+
+解决方式是：只让真正拥有对象的一方使用 `shared_ptr`，观察关系或反向关系使用 `weak_ptr`：
+
+```cpp
+struct Node {
+    std::shared_ptr<Node> next;
+    std::weak_ptr<Node> prev;
+};
+
+auto a = std::make_shared<Node>();
+auto b = std::make_shared<Node>();
+a->next = b;
+b->prev = a;
+```
+
+访问 `weak_ptr` 指向的对象时，需要先调用 `lock()` 获取临时的 `shared_ptr`，并判断对象是否仍然存在：
+
+```cpp
+if (auto prev = b->prev.lock()) {
+    // prev 有效时才访问对象
+}
+```
+
+面试表达：
+
+> 循环引用的本质是所有权关系形成闭环，导致引用计数永远无法归零。解决时要区分“拥有关系”和“观察关系”：拥有关系用 `shared_ptr`，观察关系用 `weak_ptr`。常见场景包括双向链表、树的父子关系、对象回调和异步任务。
+
+### 18. shared_ptr 的线程安全怎么理解？
 
 `shared_ptr` 控制块中的引用计数增减通常是线程安全的，也就是多个 shared_ptr 实例在不同线程拷贝、析构不会破坏引用计数。
 
@@ -449,7 +494,7 @@ delete p; // Base 析构非 virtual 时，Derived 析构可能不被调用
 
 > shared_ptr 管理的对象本身不是自动线程安全的。多个线程同时读写对象内容，仍然需要锁或其他同步机制。同一个 shared_ptr 对象本身被多个线程同时读写，也需要额外同步。
 
-### 18. 左值、右值、右值引用和移动语义是什么？
+### 19. 左值、右值、右值引用和移动语义是什么？
 
 左值通常有稳定地址，可以出现在赋值号左边；右值通常是临时对象或即将销毁的值。右值引用用 `T&&` 表示，可以绑定右值。
 
@@ -463,7 +508,7 @@ delete p; // Base 析构非 virtual 时，Derived 析构可能不被调用
 
 ## P1：高频进阶，能体现工程能力
 
-### 19. vector 和 list 有什么区别？
+### 20. vector 和 list 有什么区别？
 
 `vector` 底层是连续数组，支持 O(1) 随机访问，尾插通常高效，但中间插入删除需要移动元素，扩容会导致迭代器、指针、引用失效。
 
@@ -473,7 +518,7 @@ delete p; // Base 析构非 virtual 时，Derived 析构可能不被调用
 
 > 如果主要随机访问和尾部追加，用 vector；如果频繁在中间插入删除且已持有节点位置，可考虑 list。但现代 CPU 下 vector 的缓存友好性很好，很多场景即使有少量移动也比 list 快。
 
-### 20. map 和 unordered_map 有什么区别？
+### 21. map 和 unordered_map 有什么区别？
 
 `map` 通常基于红黑树，有序，查找/插入/删除复杂度 O(logN)；`unordered_map` 基于哈希表，无序，平均 O(1)，最坏可能退化。
 
@@ -481,7 +526,7 @@ delete p; // Base 析构非 virtual 时，Derived 析构可能不被调用
 
 > 需要有序遍历、范围查询、稳定的最坏复杂度时用 map；追求平均查找性能、无序即可时用 unordered_map。unordered_map 要关注哈希函数、冲突、扩容和内存占用。
 
-### 21. 迭代器失效有哪些场景？
+### 22. 迭代器失效有哪些场景？
 
 常见场景：
 
@@ -495,7 +540,7 @@ delete p; // Base 析构非 virtual 时，Derived 析构可能不被调用
 
 > 遍历中删除要使用容器返回的新迭代器；vector 提前 reserve；不要长期保存可能失效的迭代器或元素地址。
 
-### 22. vector 扩容机制是什么？
+### 23. vector 扩容机制是什么？
 
 当 `vector` 容量不足时，会申请一块更大的连续内存，把原元素移动或拷贝过去，再释放旧内存。扩容倍率由实现决定，常见是 1.5 倍或 2 倍。
 
@@ -503,7 +548,7 @@ delete p; // Base 析构非 virtual 时，Derived 析构可能不被调用
 
 > 扩容会带来元素迁移成本，也会导致原迭代器、指针、引用失效。如果能预估大小，应使用 `reserve` 减少扩容次数。
 
-### 23. 线程安全是什么？
+### 24. 线程安全是什么？
 
 线程安全是指多个线程并发访问同一段代码或同一份数据时，不会因为执行顺序不确定而产生错误结果、数据竞争或未定义行为。
 
@@ -519,7 +564,7 @@ delete p; // Base 析构非 virtual 时，Derived 析构可能不被调用
 
 > 多线程问题的核心不是线程本身，而是共享可变数据。只要有共享写，就要考虑同步或重新设计数据归属。
 
-### 24. mutex 和 condition_variable 如何配合？
+### 25. mutex 和 condition_variable 如何配合？
 
 `mutex` 用来保护共享数据，`condition_variable` 用来等待某个条件成立并唤醒线程。典型场景是生产者消费者。
 
@@ -534,7 +579,7 @@ std::unique_lock<std::mutex> lock(mtx);
 cv.wait(lock, [] { return !queue.empty(); });
 ```
 
-### 25. 什么是死锁？如何避免？
+### 26. 什么是死锁？如何避免？
 
 死锁是多个线程或进程互相等待对方持有的资源，导致都无法继续执行。
 
@@ -549,7 +594,7 @@ cv.wait(lock, [] { return !queue.empty(); });
 
 > 固定加锁顺序，减少锁嵌套，使用 `std::lock` 同时加锁，使用 RAII 自动释放锁，使用超时锁，避免持锁做耗时 IO 或回调外部代码。
 
-### 26. 线程池的基本结构是什么？
+### 27. 线程池的基本结构是什么？
 
 线程池通常包含：
 
@@ -565,7 +610,7 @@ cv.wait(lock, [] { return !queue.empty(); });
 
 ## P2：补充深度，避免追问空白
 
-### 27. 宏和 inline 函数有什么区别？
+### 28. 宏和 inline 函数有什么区别？
 
 宏由预处理器做文本替换，没有类型检查，容易产生副作用；`inline` 是函数，有类型检查、作用域和调试信息，是否真正内联由编译器决定。
 
@@ -573,7 +618,7 @@ cv.wait(lock, [] { return !queue.empty(); });
 
 > 能用 constexpr、inline、模板、枚举解决的问题，尽量不用宏。宏适合条件编译、平台差异和少量编译期控制。
 
-### 28. C++ 类型转换有哪些？
+### 29. C++ 类型转换有哪些？
 
 | 转换 | 用途 |
 |---|---|
@@ -586,7 +631,7 @@ cv.wait(lock, [] { return !queue.empty(); });
 
 > C++ 风格转换比 C 风格强制转换更明确，能表达转换意图。工程上应尽量避免 reinterpret_cast，除非是底层系统或序列化等明确场景。
 
-### 29. 模板为什么通常写在头文件？
+### 30. 模板为什么通常写在头文件？
 
 模板不是普通函数或类，编译器需要在使用点看到模板定义，才能根据具体类型实例化代码。如果只把模板定义放在 cpp 文件，其他翻译单元使用时可能无法实例化，导致链接错误。
 
@@ -594,7 +639,7 @@ cv.wait(lock, [] { return !queue.empty(); });
 
 > 模板的本质是编译期代码生成，声明不够，使用处通常必须能看到完整定义。
 
-### 30. 前置声明有什么用？
+### 31. 前置声明有什么用？
 
 前置声明可以在不包含完整头文件的情况下声明某个类型存在，从而减少编译依赖、降低编译时间、解决部分循环依赖。
 
@@ -602,7 +647,7 @@ cv.wait(lock, [] { return !queue.empty(); });
 
 > 只知道类型存在时，可以声明指针或引用；如果需要创建对象、访问成员、继承该类，就必须包含完整定义。
 
-### 31. class 和 struct 有什么区别？
+### 32. class 和 struct 有什么区别？
 
 C++ 中 `class` 和 `struct` 的主要区别是默认访问权限不同：`class` 默认 private，`struct` 默认 public。默认继承权限也不同：class 默认 private 继承，struct 默认 public 继承。
 
