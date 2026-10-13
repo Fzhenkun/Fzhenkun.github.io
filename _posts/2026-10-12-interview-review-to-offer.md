@@ -3,6 +3,7 @@ title: 应聘执行指南
 date: 2026-10-12 17:00:00 +0800
 categories: [求职, 面试]
 tags: [interview, career, review, offer]
+published: true
 ---
 > 谋定而后动，知止而有得，万事皆有法，不可乱也 ——《孙子兵法》。
 
@@ -62,7 +63,7 @@ tags: [interview, career, review, offer]
 
 | 项目 | 内容 |
 |---|---|
-| 目标岗位 | C++ 开发 / PC端开发 / Windows 客户端开发 / 性能稳定性治理等 |
+| 目标岗位 | C++ 开发 / PC 端开发 / Windows 客户端开发 / 性能稳定性治理等 |
 | 目标行业 | 互联网 / 工具软件 / 基础软件 / 企业服务等 |
 | 目标城市 | 根据生活、家庭、机会和通勤综合选择 |
 | 薪资范围 | 期望薪资 + 可接受底线 |
@@ -125,7 +126,7 @@ tags: [interview, career, review, offer]
 | A 行动 | 你具体如何分析和处理 |
 | R 结果 | 最终指标、效果、沉淀是什么 |
 
-示例方向：
+示例：
 
 > 复现 Windows 不依赖 dump 的调用栈解析方案。
 
