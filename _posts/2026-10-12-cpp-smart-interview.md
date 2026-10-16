@@ -12,7 +12,7 @@ published: false
 
 | 维度 | 目标 |
 |---|---|
-| S 具体 | 掌握 C++ 基础、内存管理、面向对象、C++11、STL、多线程六条主线 |
+| S 具体 | 掌握 C++ 基础、内存管理、面向对象、C++11/14/17/20、STL、多线程六条主线 |
 | M 可度量 | 能独立回答 40 个高频问题，每个核心问题能讲出定义、原理、场景、坑点 |
 | A 可实现 | 每天聚焦 1 个主题，不追求全文背诵，优先掌握面试高频主干 |
 | R 相关 | 围绕软件开发、稳定性、性能、内存、并发问题展开 |
@@ -32,7 +32,81 @@ published: false
 | P1 | C++ 多线程、mutex、condition_variable、线程安全 | 和卡顿、死锁、并发问题强相关 |
 | P2 | 模板、宏/inline、类型转换、编译链接 | 用于补充深度，避免被追问打穿 |
 
-## 三、7 天执行计划
+## 三、C++11/14/17/20 特性知识清单
+
+面试时不要只背“新增了什么”，还要能说明特性解决的问题、适用场景、生命周期或性能影响，以及使用时的边界。下面按标准版本整理，复习时逐项勾选。
+
+### C++11：现代 C++ 的基础
+
+- [ ] `auto`、`decltype`：类型推导规则，引用、`const` 和表达式类型的差异
+- [ ] `nullptr`：区别于 `NULL` 和 `0`，避免重载调用歧义
+- [ ] 范围 `for`：遍历副本、引用和 `const` 引用的区别
+- [ ] 初始化列表和统一初始化：防止窄化转换，理解 `std::initializer_list` 的优先匹配
+- [ ] `enum class`：强类型枚举和作用域隔离
+- [ ] `using` 类型别名：与 `typedef` 的区别，以及模板别名
+- [ ] `constexpr`：编译期求值与运行期求值的区别，`const` 与 `constexpr` 的区别
+- [ ] `static_assert`：编译期检查模板参数或类型约束
+- [ ] Lambda：捕获列表、值捕获与引用捕获、可变 Lambda、返回类型和生命周期风险
+- [ ] 右值引用、移动构造、移动赋值和完美转发：`std::move`/`std::forward` 的作用
+- [ ] 特殊成员函数规则：拷贝/移动构造和赋值运算符的隐式生成、`= default`、`= delete`
+- [ ] `std::unique_ptr`、`std::shared_ptr`、`std::weak_ptr` 和 `std::make_shared`
+- [ ] `std::thread`、`mutex`、`lock_guard`、`unique_lock`、`condition_variable`、`future`
+- [ ] `std::atomic`、`memory_order` 的基础，以及数据竞争和 happens-before
+- [ ] `std::array`、`std::unordered_map`、`std::tuple`、`std::function`、`std::bind`
+- [ ] 正则表达式、随机数库、时间库和文件流的基本使用场景
+
+### C++14：让 C++11 更易用
+
+- [ ] 泛型 Lambda：`[](const auto& value) { ... }` 的类型推导
+- [ ] Lambda 初始化捕获：`[ptr = std::move(ptr)]`，理解所有权转移
+- [ ] 放宽 `constexpr` 函数限制：允许局部变量和多条语句
+- [ ] 函数返回类型推导：`auto f() { return value; }` 的限制
+- [ ] `std::make_unique`：异常安全地创建 `unique_ptr`
+- [ ] 二进制字面量和数字分隔符：提升常量可读性
+- [ ] 变量模板和通用 Lambda 的工程使用场景
+
+### C++17：更强的类型推导与库能力
+
+- [ ] 结构化绑定：解包 `pair`、`tuple`、数组和可绑定对象时的引用/值语义
+- [ ] `if constexpr`：编译期分支，解决模板代码中的类型分支问题
+- [ ] `constexpr` Lambda、`constexpr` 更宽松的限制
+- [ ] 类模板参数推导（CTAD）：何时能省略模板参数，何时需要显式指定
+- [ ] `inline` 变量：头文件中定义全局变量或静态成员的 ODR 问题
+- [ ] `std::optional`：表达“可能没有值”，与指针、异常的取舍
+- [ ] `std::variant` 和 `std::visit`：类型安全的联合体和访问方式
+- [ ] `std::any`：运行期保存任意类型，了解类型擦除和性能成本
+- [ ] `std::string_view`：非拥有视图、生命周期悬空和不保证以 `\0` 结尾
+- [ ] `std::filesystem`：路径、文件和目录操作
+- [ ] `std::string` 的 `data()` 可修改语义、并行算法、`from_chars`/`to_chars`
+- [ ] `[[nodiscard]]`、`[[maybe_unused]]`、`[[fallthrough]]` 等标准属性
+- [ ] 扩展的 `constexpr`、嵌套命名空间和 `noexcept` 对移动操作及容器性能的影响
+
+### C++20：概念、协程与并发能力
+
+- [ ] Concepts 和 `requires`：约束模板参数，理解 `requires` 表达式和约束诊断
+- [ ] 三路比较运算符 `<=>`：默认比较、比较类别和与传统运算符的关系
+- [ ] 范围 `for` 的初始化语句、指定初始化器和 `using enum`
+- [ ] `consteval`、`constinit`：立即函数和静态初始化保证，与 `constexpr` 的区别
+- [ ] 模块的目标、接口/实现边界，以及当前编译器和构建系统支持情况
+- [ ] 协程基础：`co_await`、`co_yield`、`co_return`，状态机、挂起点和生命周期
+- [ ] `std::jthread` 和 `std::stop_token`：自动 join 与协作式取消
+- [ ] 信号量、闩锁、屏障：`counting_semaphore`、`latch`、`barrier` 的适用场景
+- [ ] 原子智能指针 `std::atomic<std::shared_ptr<T>>` 和原子等待/通知
+- [ ] `std::span`：非拥有连续内存视图，避免数组参数丢失长度信息
+- [ ] `std::ranges`：视图、管道、约束和惰性求值的基本使用方式
+- [ ] `std::format`、日历及时区库：了解标准库支持情况和替代方案
+
+### 版本特性综合自测
+
+1. 为什么 C++11 的移动语义通常需要配合 `noexcept`？`vector` 扩容时如何选择移动或拷贝？
+2. C++14 泛型 Lambda 和 C++20 Concepts 分别解决什么问题？二者如何配合？
+3. `std::string_view`、`std::span` 为什么不拥有数据？分别有哪些悬空风险？
+4. `optional`、指针、异常和返回错误码分别适合表达什么失败或缺失语义？
+5. `variant`、继承多态和 `any` 如何选择？它们在类型安全、扩展性和运行时开销上有什么差异？
+6. `jthread` 与 `thread` 的生命周期管理有什么区别？协作式取消为什么不能强制终止线程？
+7. Concepts、模块、协程和 ranges 解决了哪些工程问题？项目编译器是否完整支持？
+
+## 四、7 天执行计划
 
 | 天数 | 主题 | 必须掌握 | 输出成果 |
 |---|---|---|---|
@@ -40,11 +114,11 @@ published: false
 | Day 2 | 面向对象 | 封装继承多态、虚函数、虚表、构造析构、explicit、class/struct | 能讲清多态实现和析构为何常设虚函数 |
 | Day 3 | 内存管理 | 栈/堆/全局区、new/malloc、delete/free、内存泄漏、野指针、悬空指针 | 能把内存问题和崩溃定位联系起来 |
 | Day 4 | 拷贝与资源管理 | 深浅拷贝、拷贝构造、赋值运算符、RAII、智能指针 | 准备一个资源管理项目案例 |
-| Day 5 | C++11 | 移动语义、右值引用、完美转发、lambda、auto、nullptr | 能解释移动语义解决什么性能问题 |
+| Day 5 | C++11/14/17/20 | 按版本完成特性清单，重点掌握移动语义、lambda、`optional`、`string_view`、Concepts、协程和 C++20 并发工具 | 能按“问题-特性-边界”说明版本特性，而不是只罗列名词 |
 | Day 6 | STL | vector/list/deque/map/unordered_map、迭代器失效、扩容 | 能从复杂度和内存布局角度比较容器 |
 | Day 7 | 多线程与综合表达 | thread、mutex、条件变量、死锁、线程池、线程安全 | 模拟回答 15 个综合问题 |
 
-## 四、面试回答通用模板
+## 五、面试回答通用模板
 
 遇到 C++ 问题，不要一上来散讲。用这个结构：
 
@@ -57,7 +131,7 @@ published: false
 
 > 指针和引用的区别：指针是变量，保存地址，可以为空，也可以改变指向；引用是对象别名，声明时必须初始化，通常不能重新绑定。工程上如果参数必然存在，优先用引用表达非空语义；如果参数可能为空、需要改变指向或表达所有权关系，则用指针。常见坑是空指针、野指针、悬空指针，这些都可能导致崩溃。
 
-## 五、P0 高频问题清单
+## 六、P0 高频问题清单
 
 ### 1. 指针和引用
 
@@ -190,7 +264,7 @@ published: false
 
 > 多线程问题的本质是共享数据访问顺序不可控。常见手段是互斥锁保护临界区，条件变量负责线程间等待和唤醒。避免死锁可以从固定加锁顺序、减少锁粒度、使用 RAII 锁、超时和 try_lock 等角度入手。
 
-## 六、项目结合表达
+## 七、项目结合表达
 
 把 C++ 知识和你的稳定性/性能经验连接起来：
 
@@ -203,7 +277,7 @@ published: false
 | vector 扩容 | 结合性能抖动、内存峰值、reserve 优化 |
 | 死锁 | 结合多线程资源竞争、锁顺序、WinDbg 分析 |
 
-## 七、每日自测
+## 八、每日自测
 
 每天复习结束后，用 10 分钟回答：
 
@@ -213,7 +287,7 @@ published: false
 4. 如果面试官追问“为什么”，我能不能继续讲下去？
 5. 今天要加入错题本的问题是什么？
 
-## 八、面试前 30 分钟速记
+## 九、面试前 30 分钟速记
 
 - 指针/引用：变量地址 vs 对象别名，可空 vs 必须初始化。
 - const：表达不可修改，注意常量指针和指针常量。
@@ -226,7 +300,7 @@ published: false
 - unordered_map：哈希表，平均 O(1)，注意冲突和扩容。
 - 多线程：共享数据 + 同步机制 + 死锁规避。
 
-## 九、按优先级整理的面试答案库
+## 十、按优先级整理的面试答案库
 
 这一节用于直接背诵和面试表达。顺序按 P0、P1、P2 排列，先掌握基础高频，再补充更高维知识。
 
@@ -688,3 +762,242 @@ cv.wait(lock, [] { return !queue.empty(); });
 工程习惯：
 
 > struct 常用于简单数据聚合，class 常用于封装行为和不变量。
+
+## C++11/14/17/20 特性专题答案
+
+下面的内容用于补充版本特性题。回答时建议按“特性是什么、解决什么问题、使用时有什么边界、项目中如何选择”展开，避免只罗列标准新增名词。
+
+### 33. C++11 相比 C++03 主要改进了什么？
+
+C++11 是现代 C++ 的基础版本，重点解决了资源管理、类型推导、函数对象和并发编程中的重复代码与性能问题。高频特性包括：
+
+- `auto`、`decltype`、`nullptr`、范围 `for`、统一初始化和 `enum class`
+- Lambda、右值引用、移动语义和完美转发
+- `= default`、`= delete`、`override`、`final`、`noexcept`
+- `unique_ptr`、`shared_ptr`、`weak_ptr` 和 RAII
+- `thread`、`mutex`、`condition_variable`、`future`、`atomic`
+- `unordered_map`、`array`、`tuple`、`function`、随机数库和时间库
+
+面试表达：
+
+> C++11 的核心价值是把资源管理和类型表达能力交给语言与标准库。移动语义减少了不必要的深拷贝，智能指针和 RAII 降低了资源泄漏风险，Lambda 和标准线程库让函数式回调与并发编程更直接。
+
+### 34. `auto`、`decltype` 和 `nullptr` 如何使用？
+
+`auto` 根据初始化表达式推导变量类型，但会像模板参数推导一样忽略顶层 `const` 和引用；如果希望保留引用，需要显式写 `auto&` 或 `auto&&`。`decltype` 根据表达式的形式推导类型：未加括号的变量名得到声明类型，带括号的左值表达式通常得到引用类型。
+
+```cpp
+const int value = 1;
+auto a = value;       // int
+decltype(value) b = 2;// const int
+decltype((value)) c = value; // const int&
+```
+
+`nullptr` 是 `std::nullptr_t` 类型的空指针字面量，可以转换为任意指针类型；`NULL` 在很多实现中只是整数 `0`，传给重载函数时可能产生歧义。
+
+面试陷阱：
+
+> `auto` 不是“动态类型”，类型在编译期已经确定；使用 `auto` 时仍要关注值拷贝、引用和 `const` 是否被保留。`decltype(auto)` 适合需要精确保留返回值引用属性的场景，但也可能把局部变量引用返回出去形成悬空引用。
+
+### 35. Lambda 的捕获方式和生命周期风险是什么？
+
+Lambda 本质上是一个编译器生成的函数对象。`[x]` 按值捕获，`[&x]` 按引用捕获，`[=]` 和 `[&]` 分别表示默认按值或按引用捕获，`[this]` 捕获当前对象指针。
+
+```cpp
+int value = 1;
+auto by_value = [value] { return value; };
+auto by_ref = [&value] { return value; };
+auto moved = [ptr = std::make_unique<int>(1)] {
+    return *ptr;
+};
+```
+
+常见风险：
+
+- 异步任务按引用捕获局部变量，任务执行时局部变量可能已经销毁
+- 捕获 `this` 只复制指针，不延长对象生命周期
+- 按值捕获大型对象会产生拷贝，必要时应考虑移动捕获或引用捕获
+- `mutable` 可以修改 Lambda 内部保存的值，但不会修改外部原变量
+
+面试表达：
+
+> Lambda 的关键不是语法简洁，而是捕获对象的所有权和生命周期必须明确。异步回调中，如果需要延长对象生命周期，应捕获合适的 `shared_ptr`；如果只是观察对象，则要保证任务执行期间对象一定有效，不能盲目捕获 `this`。
+
+### 36. 移动语义、完美转发和 `noexcept` 有什么关系？
+
+移动语义通过右值引用接管临时对象或即将销毁对象的资源，避免重新分配和深拷贝。`std::move` 只是类型转换，不会自己移动资源；真正的移动发生在移动构造或移动赋值函数中。`std::forward<T>` 用于模板中保持参数原本的左值/右值属性。
+
+```cpp
+template <class T, class... Args>
+std::unique_ptr<T> make(Args&&... args) {
+    return std::make_unique<T>(std::forward<Args>(args)...);
+}
+```
+
+移动构造和移动赋值通常应声明为 `noexcept`。因为 `vector` 扩容时需要保证异常安全：如果移动可能抛异常，容器通常会选择拷贝；如果移动是 `noexcept`，容器可以安全地优先移动元素。
+
+面试表达：
+
+> 移动语义优化的是资源所有权转移，而不是简单地把所有成员“复制得更快”。移动后的对象必须仍处于有效但未指定的状态，不能继续假设其原有内容。只有确认移动操作不会抛异常时，才应声明 `noexcept`，不能为了触发优化而虚假标注。
+
+### 37. C++14 增加了哪些高频特性？
+
+C++14 主要是对 C++11 的补强，降低现代写法的使用成本：
+
+- 泛型 Lambda：参数可以写成 `auto`，同一个 Lambda 可处理多种类型
+- Lambda 初始化捕获：可以在捕获列表中声明并初始化新变量
+- 更宽松的 `constexpr`：允许局部变量和多条语句
+- 函数返回类型推导：适合简单函数，但复杂重载接口仍建议显式返回类型
+- `std::make_unique`：以异常安全的方式创建 `unique_ptr`
+- 二进制字面量、数字分隔符、变量模板
+
+```cpp
+auto add = [](auto left, auto right) {
+    return left + right;
+};
+
+auto resource = std::make_unique<int>(42);
+auto callback = [resource = std::move(resource)] {
+    return *resource;
+};
+```
+
+面试表达：
+
+> C++14 没有改变 C++11 的核心模型，主要让泛型 Lambda、移动捕获和编译期计算更实用。初始化捕获尤其适合把不可拷贝资源移动进异步任务或回调对象中。
+
+### 38. C++17 的结构化绑定、`if constexpr` 和 CTAD 解决什么问题？
+
+结构化绑定可以直接解包 `pair`、`tuple`、数组或提供绑定接口的类型；`if constexpr` 在编译期选择分支，被丢弃的分支不会参与实例化；CTAD 允许编译器从构造函数参数推导类模板参数。
+
+```cpp
+auto [name, score] = std::pair<std::string, int>{"cpp", 95};
+
+template <class T>
+void print(T value) {
+    if constexpr (std::is_integral_v<T>) {
+        std::cout << value << " is integer\n";
+    } else {
+        std::cout << value << " is not integer\n";
+    }
+}
+
+std::pair result{"cpp", 95}; // CTAD 推导为 pair<const char*, int>
+```
+
+面试陷阱：
+
+> 结构化绑定默认可能发生拷贝，需要修改原对象时使用 `auto&` 或 `const auto&`。`if constexpr` 是编译期分支，不等同于运行期 `if`。CTAD 可能推导出与预期不同的类型，例如字符串字面量会推导为 `const char*`，应在接口边界处显式写出类型。
+
+### 39. `optional`、`variant`、`any` 和 `string_view` 如何选择？
+
+| 类型 | 语义 | 主要风险或代价 |
+|---|---|---|
+| `std::optional<T>` | 可能存在一个 `T` | 忘记判断 `has_value()` 或错误使用 `value()` 抛异常 |
+| `std::variant<T...>` | 若干候选类型中的一个 | 访问前要判断类型，通常使用 `std::visit` |
+| `std::any` | 运行期保存任意类型 | 类型约束弱、可能有类型擦除和分配开销 |
+| `std::string_view` | 指向字符序列的非拥有视图 | 原字符串销毁或移动后，视图可能悬空 |
+
+```cpp
+std::optional<int> find_id();
+std::variant<int, std::string> result;
+std::string text = "hello";
+std::string_view view = text; // view 不拥有 text
+```
+
+面试表达：
+
+> `optional` 表达“有或没有”，`variant` 表达“几种明确类型中的一种”，`any` 表达“类型运行期才知道”。能用前两者表达清楚时，不要用 `any` 牺牲类型安全。`string_view` 适合只读参数和解析窗口，但不能返回指向局部字符串的视图，也不能默认它以空字符结尾。
+
+### 40. C++17 的 `filesystem`、`constexpr` 和标准属性有什么价值？
+
+`std::filesystem` 统一了路径、目录、文件状态和文件操作；C++17 进一步放宽了 `constexpr`，让更多算法和数据结构能够在编译期计算；`[[nodiscard]]` 可以提醒调用方不能忽略返回值，`[[maybe_unused]]` 和 `[[fallthrough]]` 用于表达明确意图。
+
+```cpp
+[[nodiscard]] bool save_config(const std::filesystem::path& path);
+
+if (std::filesystem::exists("config.json")) {
+    // 继续读取配置
+}
+```
+
+面试时要补充：`filesystem` 的操作可能失败，应检查错误码或捕获 `filesystem_error`；属性是给编译器和读代码的人看的约束提示，不能替代运行时校验。
+
+### 41. C++20 Concepts 和 `requires` 解决了什么问题？
+
+Concepts 用可读的约束描述模板参数必须满足的条件，让错误更早、更接近调用点，也避免大量依赖 SFINAE 的复杂写法。
+
+```cpp
+template <typename T>
+concept Addable = requires(T left, T right) {
+    { left + right } -> std::convertible_to<T>;
+};
+
+template <Addable T>
+T add(T left, T right) {
+    return left + right;
+}
+```
+
+`requires` 可以出现在模板参数、函数尾部或表达式中，用于检查类型是否支持某个操作。Concepts 约束的是编译期类型关系，不会在运行期做类型检查，也不会自动解决算法复杂度或生命周期问题。
+
+面试表达：
+
+> Concepts 的价值是把模板的隐式要求显式化，让接口契约和编译错误更清晰。它改善的是模板可读性和诊断能力，不代表模板代码就没有运行时开销，也不代表任意类型都应被放宽为通用模板。
+
+### 42. C++20 的 `<=>`、`consteval` 和 `constinit` 有什么区别？
+
+`<=>` 是三路比较运算符，可以一次产生小于、等于或大于的比较结果，并在适当情况下自动生成其他比较运算符。`constexpr` 函数可以在编译期或运行期执行；`consteval` 函数必须在编译期执行；`constinit` 用于要求具有静态存储期的变量进行静态初始化，但变量本身不一定是 const。
+
+```cpp
+struct Version {
+    int major;
+    int minor;
+    auto operator<=>(const Version&) const = default;
+};
+
+consteval int compile_only() { return 2020; }
+constinit int version = compile_only();
+```
+
+面试表达：
+
+> `constexpr` 是“可以编译期求值”，`consteval` 是“必须编译期求值”，`constinit` 是“静态对象必须完成静态初始化”。三者关注点分别是求值时机、强制求值和初始化阶段。
+
+### 43. `span`、Ranges 和协程分别解决什么问题？
+
+- `std::span<T>` 是连续内存的非拥有视图，把指针和长度组合成一个参数，适合接收数组、`vector` 或其他连续容器；调用方必须保证底层数据在 `span` 使用期间有效。
+- `std::ranges` 提供带约束的算法和惰性视图，可以用管道组合过滤、转换等操作；视图通常不拥有数据，迭代时仍需保证源数据有效。
+- 协程通过 `co_await`、`co_yield`、`co_return` 描述可挂起函数，编译器会生成保存局部状态的状态机。协程本身不等于线程，是否异步以及由谁调度取决于协程返回类型和执行器设计。
+
+```cpp
+void consume(std::span<const int> values);
+
+auto even = numbers
+    | std::views::filter([](int value) { return value % 2 == 0; })
+    | std::views::transform([](int value) { return value * 2; });
+```
+
+面试陷阱：
+
+> `span` 和 ranges view 都是非拥有对象，不能脱离底层容器生命周期使用。协程降低了异步流程的表达复杂度，但会引入协程帧、挂起点和销毁时机等生命周期问题，生产代码必须明确取消、异常传播和执行线程。
+
+### 44. `jthread`、`stop_token`、信号量、闩锁和屏障怎么选？
+
+`std::jthread` 析构时会自动请求停止并等待线程结束，相比 `std::thread` 更不容易因为忘记 `join()` 触发问题；但停止是协作式的，线程函数必须检查 `stop_token` 或响应停止回调，系统不能强制安全地终止任意线程。
+
+- `counting_semaphore`：控制同时进入某类资源的线程数量
+- `latch`：一次性等待固定数量的任务完成
+- `barrier`：多个阶段重复等待，所有参与者到达后进入下一阶段
+
+面试表达：
+
+> 这些 C++20 同步工具表达的是不同的同步协议：信号量控制资源计数，闩锁等待一次性事件，屏障协调重复阶段。选择时先描述线程之间的关系，再选择对应工具，不能只因为 API 更新就替换所有 mutex 和条件变量。
+
+### 45. 如何在面试中比较 C++11、14、17、20？
+
+可以用下面的主线回答：
+
+> C++11 建立现代 C++ 的基础，重点是移动语义、Lambda、智能指针、类型推导和标准并发库；C++14 对 C++11 做易用性补强，代表特性是泛型 Lambda、初始化捕获和 `make_unique`；C++17 强化编译期编程和类型安全，代表特性是结构化绑定、`if constexpr`、`optional`、`variant`、`string_view` 和 `filesystem`；C++20 则进一步改善模板约束、范围处理、协程和并发同步，代表特性是 Concepts、Ranges、Coroutines、`jthread`、`span` 和 `<=>`。
+>
+> 工程上不能只看标准版本，还要确认编译器、标准库和构建链的支持程度。选择特性时要同时考虑可读性、异常安全、对象生命周期、性能测量和团队编译环境。
