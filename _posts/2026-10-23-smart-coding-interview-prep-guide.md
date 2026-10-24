@@ -3,6 +3,7 @@ title: 面试刷题速刷总表 SMART 版本
 date: 2026-10-23 12:00:00 +0800
 categories: [算法, 面试]
 tags: [algorithm, coding-interview, cpp]
+published: true
 ---
 
 > 目标：把目录中的零散题解压缩成 12 个高频模型。首轮先掌握“看到什么信号就想到什么模板”，再用限时手撕和错题复写验证，而不是背 40 多段代码。
@@ -43,6 +44,8 @@ tags: [algorithm, coding-interview, cpp]
 
 **刷题顺序**：先刷链表和数组/双指针的 `P0` 题，形成指针、哈希和窗口模板；再刷树、DP 和栈；最后用堆、回溯、贪心、二分补齐变式。每道题记录牛客题号、识别信号、核心不变量、复杂度和一个边界用例。
 
+| 补充 | 牛客 Hot 101 去重新增 | 链表区间/合并/删除、二分边界、树遍历与性质、栈队列、回溯、DP、字符串、贪心、模拟 | 补齐题库覆盖；每道题均在第五部分给出关键注释代码 |
+
 ## 三、面试手撕通用流程
 
 1. **读约束**：确认输入规模、是否有序、是否允许修改、重复值、负数、空输入和返回形式。
@@ -63,6 +66,18 @@ tags: [algorithm, coding-interview, cpp]
 - **易错点**：`freq[0] = 1` 与 `pos[0] = -1` 含义不同；两数之和要先查后存避免同一元素重复；旋转时 `m %= n`；乘积题不能用除法；原地标记要先处理非正数/越界值。
 - **验收**：能解释“计数”和“首次位置”为什么使用不同 map；能在 O(n) 时间写出除自身乘积和最小缺失正数。
 
+
+- **新增题目**：**新增**数组中只出现一次的两个数字。
+
+### 新增题目代码（新增）
+
+```cpp
+// 新增：两个只出现一次的数字：整体异或得到 a^b，按最低不同位把数组分组。
+vector<int> twoSingles(vector<int>& a){int x=0;for(int v:a)x^=v;int bit=x&-x,u=0,v=0;for(int z:a)(z&bit?u:v)^=z;return {u,v};}
+
+
+```
+
 ### P0-2 双指针与滑动窗口
 
 - **识别信号**：数组有序或排序后利用单调性，用左右指针；连续子串/子数组且窗口需要保持合法，用滑动窗口；“三数之和”通常排序后固定一个数，再用双指针。
@@ -70,6 +85,38 @@ tags: [algorithm, coding-interview, cpp]
 - **代表题**：合并有序数组、三数之和、盛最多水、接雨水、无重复字符最长子串、字母异位词。
 - **易错点**：三数之和三层去重；窗口左指针不能回退；接雨水边界高度不参与蓄水；合并数组从尾部写；指针移动必须由不变量解释，不能凭感觉。
 - **验收**：能在 3 分钟说清窗口含义、扩张条件、收缩条件和答案更新时机；三数之和能处理重复值。
+
+
+- **新增题目**：**新增**合并区间、**新增**最小覆盖子串、**新增**反转字符串、**新增**最长无重复子数组、**新增**判断是否为回文字符串。
+
+### 新增题目代码（新增）
+
+```cpp
+// 新增：字符串变形/反转：按单词边界收集后逆序；原地反转只需双指针交换。
+string transform(string s){stringstream ss(s);vector<string>v;string w;while(ss>>w)v.push_back(w);reverse(v.begin(),v.end());string r;for(auto&x:v)r+=(r.empty()?"":" ")+x;return r;}
+string reverseString(string s){reverse(s.begin(),s.end());return s;}
+
+// 新增：最长公共前缀：不断缩短前缀，直到它成为每个字符串的前缀。
+string commonPrefix(vector<string>&v){if(v.empty())return "";string p=v[0];for(int i=1;i<v.size();++i)while(v[i].find(p)!=0)p.pop_back();return p;}
+
+// 新增：IP 校验：按点切段，检查非空、无前导零、数值范围；IPv6 每段 1..4 个十六进制字符。
+bool validIPv4(string s){stringstream ss(s);string x;int cnt=0;while(getline(ss,x,'.')){if(x.empty()||(x.size()>1&&x[0]=='0')||x.size()>3||!all_of(x.begin(),x.end(),::isdigit)||stoi(x)>255)return false;++cnt;}return cnt==4;}
+
+// 新增：大数加法：从末位向前模拟进位，避免依赖整型范围。
+string addBig(string a,string b){string r;int i=a.size()-1,j=b.size()-1,c=0;while(i>=0||j>=0||c){int s=c+(i>=0?a[i--]-'0':0)+(j>=0?b[j--]-'0':0);r.push_back('0'+s%10);c=s/10;}reverse(r.begin(),r.end());return r;}
+
+// 新增：回文字符串/最长无重复子数组：前者向内收缩，后者维护窗口内每个值的最近位置。
+bool palindromeString(string s){int l=0,r=s.size()-1;while(l<r)if(s[l++]!=s[r--])return false;return true;}
+int longestUniqueArray(vector<int>&a){unordered_map<int,int>last;int l=0,ans=0;for(int r=0;r<a.size();++r){if(last.count(a[r]))l=max(l,last[a[r]]+1);last[a[r]]=r;ans=max(ans,r-l+1);}return ans;}
+
+// 新增：合并区间：先按左端点排序，当前区间能覆盖到就扩展，否则输出并开启新区间。
+vector<vector<int>> mergeIntervals(vector<vector<int>>&a){sort(a.begin(),a.end());vector<vector<int>>r;for(auto x:a)if(r.empty()||r.back()[1]<x[0])r.push_back(x);else r.back()[1]=max(r.back()[1],x[1]);return r;}
+
+// 新增：最小覆盖子串：need 满足后收缩左端，记录最短合法窗口。
+string minWindow(string s,string t){unordered_map<char,int>need;for(char c:t)need[c]++;int miss=t.size(),l=0,beg=0,len=INT_MAX;for(int r=0;r<s.size();++r){if(need[s[r]]-->0)--miss;while(!miss){if(r-l+1<len)len=r-l+1,beg=l;if(++need[s[l++]]>0)++miss;}}return len==INT_MAX?"":s.substr(beg,len);}
+
+
+```
 
 ### P0-3 链表
 
@@ -79,6 +126,107 @@ tags: [algorithm, coding-interview, cpp]
 - **易错点**：翻转时丢失后继；分组不足 K 个时不能翻转；相交判断是地址相同；删除节点要同时改前后指针；LRU 的 `get` 也必须更新新鲜度。
 - **验收**：不看资料写出反转、虚拟头、快慢指针和 LRU 的四个关键操作，并能说明空间复杂度。
 
+
+- **新增题目**：**新增**链表内指定区间反转、**新增**合并两个排序的链表、**新增**合并 k 个已排序的链表、**新增**判断链表中是否有环、**新增**链表中倒数最后 k 个结点、**新增**删除链表的倒数第 n 个节点、**新增**链表相加（二）、**新增**单链表的排序、**新增**链表的奇偶重排、**新增**删除有序链表中重复的元素-I、**新增**删除有序链表中重复的元素-II。
+
+### 新增题目代码（新增）
+
+```cpp
+// 新增：链表区间反转：先用虚拟头统一处理 left=1，再把区间节点逐个头插到前驱之后。
+ListNode* reverseBetween(ListNode* head, int left, int right) {
+    ListNode dummy(0, head), *pre = &dummy;
+    for (int i = 1; i < left; ++i) pre = pre->next;
+    ListNode* cur = pre->next;
+    for (int i = left; i < right; ++i) {
+        ListNode* move = cur->next; cur->next = move->next;
+        move->next = pre->next; pre->next = move;
+    }
+    return dummy.next;
+}
+
+// 新增：合并两个有序链表：每次摘取较小节点，剩余链表直接接到尾部。
+ListNode* mergeTwo(ListNode* a, ListNode* b) {
+    ListNode dummy(0); ListNode* tail = &dummy;
+    while (a && b) { if (a->val <= b->val) tail->next = a, a = a->next;
+                     else tail->next = b, b = b->next; tail = tail->next; }
+    tail->next = a ? a : b; return dummy.next;
+}
+
+// 新增：合并 k 个链表：小根堆只保存每条链当前最小节点，空间为 k。
+ListNode* mergeK(vector<ListNode*>& lists) {
+    priority_queue<ListNode*, vector<ListNode*>, Cmp> pq;
+    for (auto p : lists) if (p) pq.push(p);
+    ListNode dummy(0); ListNode* tail = &dummy;
+    while (!pq.empty()) { auto p = pq.top(); pq.pop(); tail->next = p; tail = p;
+                           if (p->next) pq.push(p->next); }
+    return dummy.next;
+}
+
+// 新增：环检测：快指针每次走两步，能相遇说明存在环。
+bool hasCycle(ListNode* head) {
+    ListNode *slow = head, *fast = head;
+    while (fast && fast->next) { slow = slow->next; fast = fast->next->next;
+                                 if (slow == fast) return true; }
+    return false;
+}
+
+// 新增：倒数第 k 个：先让 fast 领先 k 步，slow 到达目标前驱/目标位置。
+ListNode* kthFromEnd(ListNode* head, int k) {
+    ListNode *fast = head, *slow = head;
+    while (k-- && fast) fast = fast->next;
+    while (fast) fast = fast->next, slow = slow->next;
+    return slow;
+}
+
+// 新增：删除倒数第 n 个：虚拟头使删除头节点与普通节点走同一套逻辑。
+ListNode* removeNthFromEnd(ListNode* head, int n) {
+    ListNode dummy(0, head), *fast = &dummy, *slow = &dummy;
+    for (int i = 0; i < n; ++i) fast = fast->next;
+    while (fast->next) fast = fast->next, slow = slow->next;
+    slow->next = slow->next->next; return dummy.next;
+}
+
+// 新增：链表相加：按位相加并携带 carry，输入链表本身不反转。
+ListNode* addLists(ListNode* a, ListNode* b) {
+    ListNode dummy(0); ListNode* tail = &dummy; int carry = 0;
+    while (a || b || carry) { int s = carry + (a ? a->val : 0) + (b ? b->val : 0);
+        tail->next = new ListNode(s % 10); carry = s / 10; tail = tail->next;
+        if (a) a = a->next; if (b) b = b->next; }
+    return dummy.next;
+}
+
+// 新增：链表排序：归并按中点拆分，递归深度 O(log n)，总时间 O(n log n)。
+ListNode* sortList(ListNode* head) {
+    if (!head || !head->next) return head;
+    ListNode *slow = head, *fast = head->next;
+    while (fast && fast->next) slow = slow->next, fast = fast->next->next;
+    ListNode* right = slow->next; slow->next = nullptr;
+    return mergeTwo(sortList(head), sortList(right));
+}
+
+// 新增：奇偶重排：odd/even 分别维护两条链，最后拼接；保持各自相对顺序。
+ListNode* oddEvenList(ListNode* head) {
+    if (!head) return head; ListNode *odd = head, *even = head->next, *eh = even;
+    while (even && even->next) { odd->next = even->next; odd = odd->next;
+        even->next = odd->next; even = even->next; }
+    odd->next = eh; return head;
+}
+
+// 新增：有序链表去重 I/II：I 保留一个，II 对重复值整段删除。
+ListNode* deleteDupKeep(ListNode* head) {
+    for (auto p = head; p && p->next; ) if (p->val == p->next->val) p->next = p->next->next;
+        else p = p->next; return head;
+}
+ListNode* deleteDupAll(ListNode* head) {
+    ListNode dummy(0, head), *pre = &dummy;
+    while (pre->next) { auto p = pre->next; while (p->next && p->next->val == p->val) p = p->next;
+        if (p != pre->next) pre->next = p->next; else pre = pre->next; }
+    return dummy.next;
+}
+
+
+```
+
 ### P0-4 栈与单调栈
 
 - **识别信号**：括号/字符串嵌套用栈；需要右侧第一个更大/更小元素用单调栈；柱状图面积需要同时确定左右边界。
@@ -87,6 +235,30 @@ tags: [algorithm, coding-interview, cpp]
 - **易错点**：连续出栈必须用 `while`；相等高度的处理规则要统一；柱状图首尾加 0 哨兵；解码 `]` 时要先恢复字符串再恢复倍数。
 - **验收**：能解释每个元素最多入栈/出栈一次，因此是 O(n)；能手推柱状图 `[2,1,5,6,2,3]` 的边界。
 
+
+- **新增题目**：**新增**用两个栈实现队列、**新增**有效括号序列、**新增**滑动窗口的最大值、**新增**最小的 K 个数、**新增**表达式求值。
+
+### 新增题目代码（新增）
+
+```cpp
+// 新增：两栈队列：输入栈负责入队，输出栈为空时整体倒序搬运，摊销 O(1)。
+class TwoStackQueue { stack<int> in,out; public: void push(int x){in.push(x);} int pop(){if(out.empty())while(!in.empty())out.push(in.top()),in.pop();int x=out.top();out.pop();return x;} };
+
+// 新增：有效括号：栈顶必须匹配当前右括号，最后栈必须为空。
+bool validBrackets(string s) { stack<char> st; for(char c:s){if(c=='('||c=='['||c=='{')st.push(c);else{if(st.empty()||(c==')'&&st.top()!='(')||(c==']'&&st.top()!='[')||(c=='}'&&st.top()!='{'))return false;st.pop();}}return st.empty(); }
+
+// 新增：滑动窗口最大值：单调递减双端队列保存候选下标，队首永远是窗口最大值。
+vector<int> maxWindow(vector<int>& a,int k){deque<int> q;vector<int>ans;for(int i=0;i<a.size();++i){while(!q.empty()&&q.front()<=i-k)q.pop_front();while(!q.empty()&&a[q.back()]<=a[i])q.pop_back();q.push_back(i);if(i>=k-1)ans.push_back(a[q.front()]);}return ans;}
+
+// 新增：最小 K 个数：大根堆只保留 K 个最小候选，堆顶是当前最大值。
+vector<int> smallestK(vector<int>& a,int k){priority_queue<int>q;for(int x:a){q.push(x);if(q.size()>k)q.pop();}vector<int>ans;while(!q.empty())ans.push_back(q.top()),q.pop();return ans;}
+
+// 新增：表达式求值：数字入栈，遇到运算符结算上一个运算符，乘除优先在入栈前完成。
+int calculate(string s){stack<int>st;long long num=0;char op='+';for(int i=0;i<=s.size();++i){if(i<s.size()&&isdigit(s[i]))num=num*10+s[i]-'0';else if(i==s.size()||s[i]!=' '){if(op=='+')st.push(num);else if(op=='-')st.push(-num);else{int x=st.top();st.pop();st.push(op=='*'?x*num:x/num);}num=0;if(i<s.size())op=s[i];}}int ans=0;while(!st.empty())ans+=st.top(),st.pop();return ans;}
+
+
+```
+
 ### P0-5 二叉树基础
 
 - **识别信号**：树题先问是节点值、深度、路径和还是路径列表；层级信息用 BFS；BST 的中序序列有序；前序第一个节点是根，中序用于切分左右子树。
@@ -94,6 +266,57 @@ tags: [algorithm, coding-interview, cpp]
 - **代表题**：DFS/BFS、中序第 K 小、路径和、前序与中序构造二叉树、二叉树右视图。
 - **易错点**：`k` 和路径数组的传递方式；路径是否必须从根到叶；构造树不要反复切 vector，使用中序下标 map；空树和单节点。
 - **验收**：能用递归和迭代各写一次遍历；能说明第 K 小为何只适用于 BST；能处理负数路径和。
+
+
+- **新增题目**：**新增**二叉树的前序遍历、**新增**二叉树的中序遍历、**新增**二叉树的后序遍历、**新增**求二叉树的层序遍历、**新增**按之字形顺序打印二叉树、**新增**二叉树的最大深度、**新增**二叉搜索树与双向链表、**新增**对称的二叉树、**新增**合并二叉树、**新增**二叉树的镜像、**新增**判断是不是二叉搜索树、**新增**判断是不是完全二叉树、**新增**判断是不是平衡二叉树、**新增**二叉搜索树的最近公共祖先、**新增**在二叉树中找到两个节点的最近公共祖先、**新增**序列化二叉树。
+
+### 新增题目代码（新增）
+
+```cpp
+// 新增：二叉树三种遍历：用统一的显式栈模拟递归，栈中保存待处理节点。
+void preorder(TreeNode* root, vector<int>& out) { if(!root)return; out.push_back(root->val); preorder(root->left,out); preorder(root->right,out); }
+void inorder(TreeNode* root, vector<int>& out) { if(!root)return; inorder(root->left,out); out.push_back(root->val); inorder(root->right,out); }
+void postorder(TreeNode* root, vector<int>& out) { if(!root)return; postorder(root->left,out); postorder(root->right,out); out.push_back(root->val); }
+
+// 新增：层序遍历：每轮固定当前队列长度，天然得到一层结果。
+vector<vector<int>> levelOrder(TreeNode* root) {
+    vector<vector<int>> ans; if(!root)return ans; queue<TreeNode*> q; q.push(root);
+    while(!q.empty()){ int n=q.size(); vector<int> row; while(n--){auto p=q.front();q.pop();row.push_back(p->val);if(p->left)q.push(p->left);if(p->right)q.push(p->right);} ans.push_back(row); } return ans;
+}
+
+// 新增：之字形：按层方向写入，或统一层序后反转偶数层。
+vector<vector<int>> zigzag(TreeNode* root) { auto ans=levelOrder(root); for(int i=1;i<ans.size();i+=2) reverse(ans[i].begin(),ans[i].end()); return ans; }
+
+// 新增：树高：空树为 0，当前高度是左右子树较大值加一。
+int maxDepth(TreeNode* root) { return root ? 1 + max(maxDepth(root->left), maxDepth(root->right)) : 0; }
+
+// 新增：BST 转双向链表：中序遍历顺序就是升序，prev 连接当前节点。
+TreeNode* bstToList(TreeNode* root) { TreeNode *head=nullptr,*prev=nullptr; function<void(TreeNode*)> dfs=[&](TreeNode* p){if(!p)return;dfs(p->left);if(prev)prev->right=p;else head=p;p->left=prev;prev=p;dfs(p->right);}; dfs(root); return head; }
+
+// 新增：对称树：同时比较两棵镜像子树的外侧和内侧节点。
+bool mirror(TreeNode* a, TreeNode* b) { if(!a||!b)return a==b; return a->val==b->val&&mirror(a->left,b->right)&&mirror(a->right,b->left); }
+bool isSymmetric(TreeNode* root) { return !root || mirror(root->left,root->right); }
+
+// 新增：合并树/镜像：递归复用一棵节点，空节点直接返回另一侧。
+TreeNode* mergeTrees(TreeNode* a, TreeNode* b) { if(!a)return b;if(!b)return a;a->val+=b->val;a->left=mergeTrees(a->left,b->left);a->right=mergeTrees(a->right,b->right);return a; }
+void invert(TreeNode* root) { if(!root)return; swap(root->left,root->right); invert(root->left); invert(root->right); }
+
+// 新增：BST/完全树/平衡树：分别维护中序递增、层序空位规则和子树高度。
+bool isBST(TreeNode* root, long long lo=LLONG_MIN, long long hi=LLONG_MAX) { if(!root)return true; return lo<root->val&&root->val<hi&&isBST(root->left,lo,root->val)&&isBST(root->right,root->val,hi); }
+bool isComplete(TreeNode* root) { queue<TreeNode*>q;if(root)q.push(root);bool seenNull=false;while(!q.empty()){auto p=q.front();q.pop();if(!p){seenNull=true;continue;}if(seenNull)return false;q.push(p->left);q.push(p->right);}return true; }
+int height(TreeNode* p) { if(!p)return 0;int l=height(p->left),r=height(p->right);if(l<0||r<0||abs(l-r)>1)return -1;return max(l,r)+1; }
+bool balanced(TreeNode* root) { return height(root)>=0; }
+
+// 新增：LCA：BST 利用大小关系；普通二叉树返回左右子树命中情况。
+TreeNode* lcaBST(TreeNode* r, TreeNode* a, TreeNode* b) { while(r){if(a->val<r->val&&b->val<r->val)r=r->left;else if(a->val>r->val&&b->val>r->val)r=r->right;else return r;}return nullptr; }
+TreeNode* lca(TreeNode* r, TreeNode* a, TreeNode* b) { if(!r||r==a||r==b)return r;auto l=lca(r->left,a,b),q=lca(r->right,a,b);return l&&q?r:l?l:q; }
+
+// 新增：序列化：空指针也写入占位符，反序列化才能保留树结构而不产生歧义。
+void serialize(TreeNode* r, string& s) { if(!r){s+="#,";return;}s+=to_string(r->val)+',';serialize(r->left,s);serialize(r->right,s); }
+TreeNode* deserialize(queue<string>& q) { string x=q.front();q.pop();if(x=="#")return nullptr;TreeNode* r=new TreeNode(stoi(x));r->left=deserialize(q);r->right=deserialize(q);return r; }
+
+
+```
 
 ### P0-6 动态规划基础
 
@@ -110,6 +333,43 @@ tags: [algorithm, coding-interview, cpp]
 - **易错点**：子数组/子串与子序列混淆；完全背包的遍历方向；`INT_MAX + 1` 溢出；空输入直接访问 `nums[0]`。
 - **验收**：随机抽一题能在 5 分钟内写出状态和转移；至少一题能把 O(n) 空间优化到 O(1) 或 O(n)。
 
+
+- **新增题目**：**新增**斐波那契数列、**新增**跳台阶、**新增**最小花费爬楼梯、**新增**最长公共子串、**新增**不同路径的数目（一）、**新增**把数字翻译成字符串、**新增**连续子数组的最大和、**新增**正则表达式匹配、**新增**打家劫舍（二）、**新增**买卖股票的最好时机（二）、**新增**买卖股票的最好时机（三）。
+
+### 新增题目代码（新增）
+
+```cpp
+// 新增：斐波那契/跳台阶/爬楼梯：只保留前两项；爬楼梯的费用在踏上当前台阶时结算。
+int fib(int n){int a=0,b=1;while(n--)a=b,b=a+b;return a;}
+int climb(int n){int a=1,b=1;while(n--)a=b,b=a+b;return a;}
+int minCost(vector<int>&c){int a=0,b=0;for(int i=2;i<=c.size();++i){int x=min(b+c[i-1],a+c[i-2]);a=b;b=x;}return b;}
+
+// 新增：最长公共子串：必须连续，匹配时从 dp[i-1][j-1] 延伸，不匹配即清零。
+int longestCommonSubstring(string a,string b){vector<int>dp(b.size()+1);int ans=0;for(int i=1;i<=a.size();++i)for(int j=b.size();j>=1;--j){dp[j]=a[i-1]==b[j-1]?dp[j-1]+1:0;ans=max(ans,dp[j]);}return ans;}
+
+// 新增：不同路径：网格边界只有一条路径，其余来自上方与左方。
+int uniquePaths(int m,int n){vector<int>dp(n,1);for(int i=1;i<m;++i)for(int j=1;j<n;++j)dp[j]+=dp[j-1];return dp[n-1];}
+
+// 新增：数字翻译：dp[i] 表示前 i 位方案数，最近两位在 10..25 时可合并成一位。
+int translateNum(string s){int a=1,b=1;for(int i=2;i<=s.size();++i){int two=stoi(s.substr(i-2,2));int c=b+(two>=10&&two<=25?a:0);a=b;b=c;}return b;}
+
+// 新增：最大子数组和：dp 只关心以当前位置结尾的最优值，负前缀可直接舍弃。
+int maxSubArray(vector<int>&a){int cur=a[0],ans=a[0];for(int i=1;i<a.size();++i)cur=max(a[i],cur+a[i]),ans=max(ans,cur);return ans;}
+
+// 新增：正则匹配：* 可匹配零次或继续消耗，普通字符/点只从左上角转移。
+bool regexMatch(string s,string p){int m=s.size(),n=p.size();vector<vector<bool>>dp(m+1,vector<bool>(n+1));dp[0][0]=true;for(int j=2;j<=n;++j)if(p[j-1]=='*')dp[0][j]=dp[0][j-2];for(int i=1;i<=m;++i)for(int j=1;j<=n;++j)if(p[j-1]=='*')dp[i][j]=dp[i][j-2]||((p[j-2]=='.'||p[j-2]==s[i-1])&&dp[i-1][j]);else dp[i][j]=(p[j-1]=='.'||p[j-1]==s[i-1])&&dp[i-1][j-1];return dp[m][n];}
+
+// 新增：打家劫舍（二）：首尾不能同时取，分别计算 [0,n-2] 与 [1,n-1]。
+int robRange(vector<int>&a,int l,int r){int x=0,y=0;for(int i=l;i<=r;++i){int z=max(y,x+a[i]);x=y;y=z;}return y;}
+int robCircle(vector<int>&a){if(a.size()==1)return a[0];return max(robRange(a,0,a.size()-2),robRange(a,1,a.size()-1));}
+
+// 新增：股票 II/III：II 累加所有上涨；III 用四个状态表示两次交易的持有/卖出。
+int stockUnlimited(vector<int>&p){int ans=0;for(int i=1;i<p.size();++i)ans+=max(0,p[i]-p[i-1]);return ans;}
+int stockTwo(vector<int>&p){int buy1=INT_MIN,sell1=0,buy2=INT_MIN,sell2=0;for(int x:p){buy1=max(buy1,-x);sell1=max(sell1,buy1+x);buy2=max(buy2,sell1-x);sell2=max(sell2,buy2+x);}return sell2;}
+
+
+```
+
 ### P1-1 排序与堆
 
 | 结构 | 识别信号 | 面试要点 | 复杂度 |
@@ -125,6 +385,19 @@ tags: [algorithm, coding-interview, cpp]
 - **易错点**：第 K 大不是第 K 个不同值；比较器方向；中位数偶数个元素取两堆顶平均；快排全相同数据会退化。
 - **验收**：能从零写快排分区、归并合并、大小 K 小顶堆；能解释为什么不必完整排序。
 
+
+- **新增题目**：**新增**设计 LFU 缓存结构。
+
+### 新增题目代码（新增）
+
+```cpp
+// 新增：LFU：频率升序链表/桶中维护最早访问节点，淘汰时先比频率再比时间。
+class LFU { unordered_map<int,pair<int,int>> data; unordered_map<int,list<int>> bucket; int minFreq=0; public:
+    int get(int k){if(!data.count(k))return -1;int v=data[k].first,f=data[k].second;bucket[f].remove(k);if(bucket[f].empty()&&minFreq==f)++minFreq;bucket[++f].push_front(k);data[k]={v,f};return v;}
+};
+
+```
+
 ### P1-2 回溯与矩阵
 
 - **回溯四要素**：路径、选择列表、结束条件、剪枝；做选择、递归、撤销必须成对出现。
@@ -134,6 +407,31 @@ tags: [algorithm, coding-interview, cpp]
 - **螺旋矩阵**：维护上下左右四个边界，每走完一条边立即判断是否越界。
 - **旋转图像**：转置后逐行反转，或上下翻转后转置。
 - **验收**：能说明每次递归返回后恢复了什么；矩阵题能在 O(1) 额外空间下处理首行首列为 0。
+
+
+- **新增题目**：**新增**无重复项数字的全排列、**新增**有重复项数字的全排列、**新增**岛屿数量、**新增**字符串的排列、**新增**N 皇后问题、**新增**矩阵最长递增路径。
+
+### 新增题目代码（新增）
+
+```cpp
+// 新增：全排列：交换当前位与后续位；有重复数字时用 set 跳过同层重复选择。
+void permute(vector<int>& a,int i,vector<vector<int>>&ans){if(i==a.size()){ans.push_back(a);return;}unordered_set<int> used;for(int j=i;j<a.size();++j)if(used.insert(a[j]).second){swap(a[i],a[j]);permute(a,i+1,ans);swap(a[i],a[j]);}}
+
+// 新增：字符串排列：同层用 set 去重，递归返回后撤销交换，保证每个分支从同一状态开始。
+void permuteString(string& s,int i,vector<string>&ans){if(i==s.size()){ans.push_back(s);return;}unordered_set<char>used;for(int j=i;j<s.size();++j)if(used.insert(s[j]).second){swap(s[i],s[j]);permuteString(s,i+1,ans);swap(s[i],s[j]);}}
+
+// 新增：岛屿数量：遇到陆地就 DFS 淹没整块，保证每个网格只访问一次。
+void flood(vector<vector<char>>&g,int i,int j){if(i<0||j<0||i>=g.size()||j>=g[0].size()||g[i][j]!='1')return;g[i][j]='0';flood(g,i+1,j);flood(g,i-1,j);flood(g,i,j+1);flood(g,i,j-1);}
+int islands(vector<vector<char>>&g){int ans=0;for(int i=0;i<g.size();++i)for(int j=0;j<g[0].size();++j)if(g[i][j]=='1')++ans,flood(g,i,j);return ans;}
+
+// 新增：N 皇后：列、主对角线、次对角线分别记录已占用位置，冲突时剪枝。
+void queens(int r,int n,vector<int>&usedCol,vector<int>&d1,vector<int>&d2,vector<int>&place,vector<vector<string>>&ans){if(r==n){vector<string>b(n,string(n,'.'));for(int i=0;i<n;++i)b[i][place[i]]='Q';ans.push_back(b);return;}for(int c=0;c<n;++c)if(!usedCol[c]&&!d1[r-c+n]&&!d2[r+c]){usedCol[c]=d1[r-c+n]=d2[r+c]=1;place[r]=c;queens(r+1,n,usedCol,d1,d2,place,ans);usedCol[c]=d1[r-c+n]=d2[r+c]=0;}}
+
+// 新增：矩阵最长递增路径：记忆化 DFS，只有严格变大才转移。
+int incDfs(vector<vector<int>>&a,int i,int j,vector<vector<int>>&memo){if(memo[i][j])return memo[i][j];int ans=1;int di[4]={1,-1,0,0},dj[4]={0,0,1,-1};for(int k=0;k<4;++k){int x=i+di[k],y=j+dj[k];if(x>=0&&y>=0&&x<a.size()&&y<a[0].size()&&a[x][y]>a[i][j])ans=max(ans,1+incDfs(a,x,y,memo));}return memo[i][j]=ans;}
+
+
+```
 
 ### P1-3 贪心与技巧
 
@@ -147,6 +445,44 @@ tags: [algorithm, coding-interview, cpp]
 
 - **验收**：不能只说“每一步选最优”，要说局部选择排除了什么、为什么不损失全局最优、是否依赖排序或单调性。
 
+
+- **新增题目**：**新增**字符串变形、**新增**最长公共前缀、**新增**验证 IP 地址、**新增**大数加法、**新增**分糖果问题、**新增**主持人调度（二）。
+
+### 新增题目代码（新增）
+
+```cpp
+// 新增：字符串变形/反转：按单词边界收集后逆序；原地反转只需双指针交换。
+string transform(string s){stringstream ss(s);vector<string>v;string w;while(ss>>w)v.push_back(w);reverse(v.begin(),v.end());string r;for(auto&x:v)r+=(r.empty()?"":" ")+x;return r;}
+string reverseString(string s){reverse(s.begin(),s.end());return s;}
+
+// 新增：最长公共前缀：不断缩短前缀，直到它成为每个字符串的前缀。
+string commonPrefix(vector<string>&v){if(v.empty())return "";string p=v[0];for(int i=1;i<v.size();++i)while(v[i].find(p)!=0)p.pop_back();return p;}
+
+// 新增：IP 校验：按点切段，检查非空、无前导零、数值范围；IPv6 每段 1..4 个十六进制字符。
+bool validIPv4(string s){stringstream ss(s);string x;int cnt=0;while(getline(ss,x,'.')){if(x.empty()||(x.size()>1&&x[0]=='0')||x.size()>3||!all_of(x.begin(),x.end(),::isdigit)||stoi(x)>255)return false;++cnt;}return cnt==4;}
+
+// 新增：大数加法：从末位向前模拟进位，避免依赖整型范围。
+string addBig(string a,string b){string r;int i=a.size()-1,j=b.size()-1,c=0;while(i>=0||j>=0||c){int s=c+(i>=0?a[i--]-'0':0)+(j>=0?b[j--]-'0':0);r.push_back('0'+s%10);c=s/10;}reverse(r.begin(),r.end());return r;}
+
+// 新增：回文字符串/最长无重复子数组：前者向内收缩，后者维护窗口内每个值的最近位置。
+bool palindromeString(string s){int l=0,r=s.size()-1;while(l<r)if(s[l++]!=s[r--])return false;return true;}
+int longestUniqueArray(vector<int>&a){unordered_map<int,int>last;int l=0,ans=0;for(int r=0;r<a.size();++r){if(last.count(a[r]))l=max(l,last[a[r]]+1);last[a[r]]=r;ans=max(ans,r-l+1);}return ans;}
+
+// 新增：合并区间：先按左端点排序，当前区间能覆盖到就扩展，否则输出并开启新区间。
+vector<vector<int>> mergeIntervals(vector<vector<int>>&a){sort(a.begin(),a.end());vector<vector<int>>r;for(auto x:a)if(r.empty()||r.back()[1]<x[0])r.push_back(x);else r.back()[1]=max(r.back()[1],x[1]);return r;}
+
+// 新增：最小覆盖子串：need 满足后收缩左端，记录最短合法窗口。
+string minWindow(string s,string t){unordered_map<char,int>need;for(char c:t)need[c]++;int miss=t.size(),l=0,beg=0,len=INT_MAX;for(int r=0;r<s.size();++r){if(need[s[r]]-->0)--miss;while(!miss){if(r-l+1<len)len=r-l+1,beg=l;if(++need[s[l++]]>0)++miss;}}return len==INT_MAX?"":s.substr(beg,len);}
+
+// 新增：分糖果：左右各扫一次，取两个方向要求的较大值，保证相邻更高者糖果更多。
+int candy(vector<int>&a){int n=a.size();vector<int>l(n,1),r(n,1);for(int i=1;i<n;++i)if(a[i]>a[i-1])l[i]=l[i-1]+1;for(int i=n-2;i>=0;--i)if(a[i]>a[i+1])r[i]=r[i+1]+1;int ans=0;for(int i=0;i<n;++i)ans+=max(l[i],r[i]);return ans;}
+
+// 新增：主持人调度：按开始时间排序，用小根堆保存正在占用的最早结束时间。
+int schedule(vector<vector<int>>&a){sort(a.begin(),a.end());priority_queue<int,vector<int>,greater<int>>q;for(auto&x:a){if(!q.empty()&&q.top()<=x[0])q.pop();q.push(x[1]);}return q.size();}
+
+
+```
+
 ### P2-1 DP 进阶
 
 | 题目 | 状态抓手 | 易错点 |
@@ -156,6 +492,26 @@ tags: [algorithm, coding-interview, cpp]
 | 编辑距离 | `dp[i][j]` 表示前缀变换代价，插入/删除/替换取最小 | 下标含义和空前缀初始化 |
 | 最长有效括号 | DP 或栈；DP 看前一段有效长度并找匹配左括号 | 越界检查；栈方案要放入哨兵下标 |
 | 单词拆分 | 前缀可达 DP，枚举最后一个单词 | 字典单词可重复使用；不可达状态不能误判 |
+
+
+- **新增题目**：**新增**正则表达式匹配、**新增**打家劫舍（二）、**新增**买卖股票的最好时机（二）、**新增**买卖股票的最好时机（三）。
+
+### 新增题目代码（新增）
+
+```cpp
+// 新增：正则匹配：* 可匹配零次或继续消耗，普通字符/点只从左上角转移。
+bool regexMatch(string s,string p){int m=s.size(),n=p.size();vector<vector<bool>>dp(m+1,vector<bool>(n+1));dp[0][0]=true;for(int j=2;j<=n;++j)if(p[j-1]=='*')dp[0][j]=dp[0][j-2];for(int i=1;i<=m;++i)for(int j=1;j<=n;++j)if(p[j-1]=='*')dp[i][j]=dp[i][j-2]||((p[j-2]=='.'||p[j-2]==s[i-1])&&dp[i-1][j]);else dp[i][j]=(p[j-1]=='.'||p[j-1]==s[i-1])&&dp[i-1][j-1];return dp[m][n];}
+
+// 新增：打家劫舍（二）：首尾不能同时取，分别计算 [0,n-2] 与 [1,n-1]。
+int robRange(vector<int>&a,int l,int r){int x=0,y=0;for(int i=l;i<=r;++i){int z=max(y,x+a[i]);x=y;y=z;}return y;}
+int robCircle(vector<int>&a){if(a.size()==1)return a[0];return max(robRange(a,0,a.size()-2),robRange(a,1,a.size()-1));}
+
+// 新增：股票 II/III：II 累加所有上涨；III 用四个状态表示两次交易的持有/卖出。
+int stockUnlimited(vector<int>&p){int ans=0;for(int i=1;i<p.size();++i)ans+=max(0,p[i]-p[i-1]);return ans;}
+int stockTwo(vector<int>&p){int buy1=INT_MIN,sell1=0,buy2=INT_MIN,sell2=0;for(int x:p){buy1=max(buy1,-x);sell1=max(sell1,buy1+x);buy2=max(buy2,sell1-x);sell2=max(sell2,buy2+x);}return sell2;}
+
+
+```
 
 ### P2-2 二分与综合变式
 
@@ -185,6 +541,49 @@ struct TreeNode {
     TreeNode* right;
     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
 };
+```
+
+
+- **新增题目**：**新增**二分查找-I、**新增**寻找峰值、**新增**数组中的逆序对、**新增**旋转数组的最小数字、**新增**比较版本号。
+
+### 新增题目代码（新增）
+
+```cpp
+// 新增：二分查找：区间 [l,r] 闭合，所有分支都排除 mid，避免死循环。
+int binarySearch(vector<int>& a, int target) {
+    int l = 0, r = (int)a.size() - 1;
+    while (l <= r) { int m = l + (r - l) / 2;
+        if (a[m] == target) return m; if (a[m] < target) l = m + 1; else r = m - 1; }
+    return -1;
+}
+
+// 新增：峰值：若 a[mid] < a[mid+1]，峰值必在右侧，否则在左侧含 mid 的区间。
+int findPeak(vector<int>& a) {
+    int l = 0, r = a.size() - 1;
+    while (l < r) { int m = l + (r - l) / 2; if (a[m] < a[m + 1]) l = m + 1; else r = m; }
+    return l;
+}
+
+// 新增：逆序对：归并时左值大于右值，则左半段剩余元素全部构成逆序对。
+long long mergeCount(vector<int>& a, int l, int r, vector<int>& t) {
+    if (l >= r) return 0; int m = (l + r) / 2; long long ans = mergeCount(a,l,m,t)+mergeCount(a,m+1,r,t);
+    int i=l,j=m+1,k=l; while(i<=m&&j<=r) if(a[i]<=a[j]) t[k++]=a[i++]; else ans+=m-i+1,t[k++]=a[j++];
+    while(i<=m)t[k++]=a[i++]; while(j<=r)t[k++]=a[j++]; for(i=l;i<=r;++i)a[i]=t[i]; return ans;
+}
+
+// 新增：旋转数组最小值：有重复值时 nums[mid]==nums[r] 只能安全收缩右边界。
+int minRotated(vector<int>& a) {
+    int l=0,r=a.size()-1; while(l<r){int m=l+(r-l)/2; if(a[m]<a[r])r=m; else if(a[m]>a[r])l=m+1; else --r;} return a[l];
+}
+
+// 新增：版本号：逐段解析数字，缺失段按 0 处理，避免直接按字符串比较。
+int compareVersion(string a, string b) {
+    int i=0,j=0; while(i<a.size()||j<b.size()){ long long x=0,y=0;
+        while(i<a.size()&&a[i]!='.') x=x*10+a[i++]-'0'; while(j<b.size()&&b[j]!='.') y=y*10+b[j++]-'0';
+        if(x!=y)return x<y?-1:1; ++i; ++j; } return 0;
+}
+
+
 ```
 
 ### P0-1 数组与哈希
