@@ -1301,6 +1301,90 @@ vector<vector<int>> levelOrder(TreeNode* root) {
     return ans;
 }
 
+//按之字形顺序打印二叉树：二叉树的层序遍历，对偶数层进行翻转
+vector<vector<int> > Print(TreeNode* pRoot) {
+    auto ans = levelOrder(pRoot);
+    // 对二叉树的层序遍历结果，对偶数层进行翻转
+    for(int i = 1; i < ans.size(); i += 2){
+        reverse(ans[i].begin(), ans[i].end());
+    }
+
+    return ans;
+}
+
+// 对称的二叉树：同时比较两棵镜像子树的外侧和内侧节点。
+bool mirror(TreeNode* a, TreeNode* b) {
+    if (!a || !b) return a == b;
+    // 两棵镜像子树的根节点、外侧和内侧节点（注意 a 的外侧是 a->left， b 则是 b->right）
+    return a->val == b->val && mirror(a->left, b->right) &&
+            mirror(a->right, b->left);
+}
+
+bool isSymmetrical(TreeNode* pRoot) {
+    // write code here
+    return !pRoot || mirror(pRoot->left, pRoot->right);
+}
+
+// 判断是不是平衡二叉树：记录每个节点的左右子树高度，若其左右子树高度差的绝对值 > 1，则返回 -1；否则返回左右子树高度的最大值 + 1
+int height(TreeNode* p) {
+    if (!p) return 0;
+    int l = height(p->left), r = height(p->right);
+    //若其左右子树高度差的绝对值 > 1，则返回 -1，标记以该节点为根节点的子树不是平衡二叉树
+    if (l < 0 || r < 0 || abs(l - r) > 1) return -1;
+    return max(l, r) + 1; // 返回左右子树高度的最大值+1
+}
+
+bool IsBalanced_Solution(TreeNode* pRoot) {
+    // write code here
+    return height(pRoot) >= 0;// 高度 > 0 则说明是平衡二叉树
+}
+
+// 判断是不是二叉搜索树：中序遍历结果是否严格递增
+// 二叉搜索树:满足每个节点的左子树上的所有节点均小于当前节点且右子树上的所有节点均大于当前节点
+// 判断是不是二叉搜索树：中序遍历结果是否严格递增
+long pre = INT_MIN;
+bool isValidBST(TreeNode* root) {
+    if(!root) return true;
+    // 先进入左子树判断其是否为二叉搜索树
+    if(!isValidBST(root->left)) return false;
+
+    // 判断是否递增
+    if(pre >= root->val) return false;
+    pre = root->val;
+
+    // 先进入右子树判断其是否为二叉搜索树
+    if(!isValidBST(root->right)) return false;
+    return true;
+}
+
+// 重建二叉树：前序遍历的首元素必是根节点的值，而中序遍历中根节点将二叉树分成了左右子树两个部分
+TreeNode* reConstructBinaryTree(vector<int>& preOrder, vector<int>& vinOrder) {
+    // write code here
+    //重建二叉树：前序遍历的首元素必是根节点的值，而中序遍历中根节点将二叉树分成了左右子树两个部分
+    if (preOrder.size() == 0) return nullptr;
+    //构建根节点
+    TreeNode* root = new TreeNode(preOrder[0]);
+
+    for (int i = 0; i < vinOrder.size(); i++) {
+        //找到中序遍历中的根节点，并以此划分左右子树的遍历序列
+        if (vinOrder[i] == root->val) {
+            //左子树的前序遍历，左子树的中序遍历
+            vector<int> leftPre(preOrder.begin() + 1, preOrder.begin() + i + 1);
+            vector<int> leftVin(vinOrder.begin(), vinOrder.begin() + i);
+            //构建左子树
+            root->left = reConstructBinaryTree(leftPre, leftVin);
+            //右子树的前序遍历，右子树的中序遍历
+            vector<int> rightPre(preOrder.begin() + i + 1, preOrder.end());
+            vector<int> rightVin(vinOrder.begin() + i + 1, vinOrder.end());
+            //构建右子树
+            root->right = reConstructBinaryTree(rightPre, rightVin);
+            break;
+        }
+    }
+
+    return root;
+}
+
 // BST 第 K 小：BST 的中序遍历天然是升序。
 int kthSmallest(TreeNode* root, int k) {
     stack<TreeNode*> st;
