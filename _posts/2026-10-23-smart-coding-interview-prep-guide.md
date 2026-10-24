@@ -44,7 +44,7 @@ published: true
 
 **刷题顺序**：先刷链表和数组/双指针的 `P0` 题，形成指针、哈希和窗口模板；再刷树、DP 和栈；最后用堆、回溯、贪心、二分补齐变式。每道题记录牛客题号、识别信号、核心不变量、复杂度和一个边界用例。
 
-| 补充 | 牛客 Hot 101 去重新增 | 链表区间/合并/删除、二分边界、树遍历与性质、栈队列、回溯、DP、字符串、贪心、模拟 | 补齐题库覆盖；每道题均在第五部分给出关键注释代码 |
+| 补充 | 牛客 Hot 101 去重新增 | 链表区间/合并/删除、二分边界、树遍历与性质、栈队列、回溯、DP、字符串、贪心、模拟 | 补齐题库覆盖；每道题均在第六部分给出关键注释代码 |
 
 ## 三、面试手撕通用流程
 
@@ -521,7 +521,226 @@ int stockTwo(vector<int>&p){int buy1=INT_MIN,sell1=0,buy2=INT_MIN,sell2=0;for(in
 - **答案二分**：把“是否能在答案 `x` 下完成”写成单调 `check(x)`，在可行/不可行边界上二分，而不是二分原数组。
 - **验收**：能说清 `check(mid)` 为什么单调；能处理答案在最小值、最大值、无解和重复值的情况。
 
-## 五、每道题的关键注释代码
+## 五、STL 容器与常用算法专题
+
+刷题时，STL 的价值不是记住所有 API，而是把题目中的数据关系映射到合适的数据结构，再用标准算法表达操作。选择容器时先问四个问题：是否需要连续内存、是否需要按键查找、是否需要保持顺序、是否需要在两端或堆顶高效操作。选择算法时先确认迭代器范围、排序/比较条件、返回迭代器的含义，以及操作后哪些迭代器会失效。
+
+### 5.1 容器选择总表
+
+| 容器 | 核心结构与典型复杂度 | 具体使用 | 主要边界/问题 |
+|---|---|---|---|
+| `array<T, N>` | 固定大小、连续存储；随机访问 O(1) | 编译期已知长度的数组，作为算法区间传入 | 大小不能动态改变；不要和原生数组的退化规则混淆 |
+| `vector<T>` | 可扩容连续数组；下标 O(1)，尾部插入摊销 O(1) | 默认序列容器、需要遍历/排序/随机访问 | 扩容会移动元素并使迭代器、指针、引用失效；中间插入 O(n) |
+| `deque<T>` | 分段连续存储；两端插入摊销 O(1)，下标 O(1) | 两端频繁进出，同时仍需下标访问 | 内存不保证整体连续；迭代器失效规则比 `vector` 复杂 |
+| `list<T>` | 双向链表；已知位置插入/删除 O(1) | 需要节点地址稳定，且频繁在已知位置修改 | 不支持随机访问，缓存局部性差；先找到位置仍要 O(n) |
+| `forward_list<T>` | 单向链表；已知前驱位置后插入/删除 O(1) | 极简的单向链表场景，节省一个指针 | 只能单向遍历，没有 `size()`，接口和调试成本更高 |
+| `map/set` | 平衡搜索树；查找/插入/删除 O(log n)，有序 | 需要有序遍历、范围查询、边界查找 | 节点分配和指针跳转有开销；`set` 的键不可修改 |
+| `unordered_map/set` | 哈希表；平均查找/插入/删除 O(1) | 只关心按键查找，不要求有序 | 最坏 O(n)；rehash 有延迟尖峰并使迭代器失效 |
+| `stack` | 后进先出适配器 | 括号匹配、表达式、单调栈、DFS 模拟 | 只能访问栈顶；需要遍历时不合适 |
+| `queue` | 先进先出适配器 | BFS、简单任务队列 | 只能访问队首/队尾；需要优先级时不合适 |
+| `priority_queue` | 堆；查看堆顶 O(1)，插入/删除堆顶 O(log n) | Top K、合并有序流、动态最值 | 只保证堆顶，不支持任意位置删除；默认是大顶堆 |
+
+### 5.2 `vector`、`deque`、`list` 怎么选
+
+**结论：** 刷题和一般工程代码默认优先 `vector`。只有需要两端操作，或节点位置已经确定且必须稳定时，才分别考虑 `deque` 或 `list`。
+
+**核心机制：**
+
+- `vector` 保存一段连续内存，容量不足时申请更大空间，把旧元素移动或拷贝过去，再释放旧空间。因此遍历速度通常很好，但扩容会改变元素地址。
+- `deque` 通常由多个固定大小的缓冲块和一层索引组成，两端扩展不需要搬迁全部元素，但整体不是一段可直接交给 C API 的连续内存。
+- `list` 每个节点单独分配，通过前后指针连接。插入/删除节点本身不需要移动其他元素，但指针跳转和分配成本较高。
+
+**具体使用：**
+
+```cpp
+vector<int> a;
+a.reserve(n);                         // 能预估规模时减少扩容
+deque<int> window;                   // 需要 push_front/pop_front
+list<int> items;
+auto it = items.begin();
+items.insert(it, 42);                // 已知位置时插入为 O(1)
+```
+
+滑动窗口如果只需要维护下标和最值，常用 `deque<int>` 保存候选下标；如果只是普通窗口，`vector` 配合左右下标通常更简单。不要因为题目出现“中间删除”就直接选 `list`，如果每次都要先遍历到删除位置，整体仍可能是 O(n)。
+
+**适用边界：** 需要 `data()`、大量排序/遍历或二分时，`vector` 最自然；需要双端队列时用 `deque`；需要节点地址稳定且已持有位置迭代器时才用 `list`。数据量很小时，常数开销和代码简单性往往比理论复杂度更重要。
+
+**常见问题：** `reserve` 只改变容量，不改变元素数量；`resize` 会改变元素数量。`list` 的插入删除 O(1) 不包括查找位置的时间；`deque` 没有 `data()`，不能当作连续数组。扩容或删除后不能继续使用失效的迭代器、引用和指针。
+
+### 5.3 关联容器：`map`、`set` 和哈希容器
+
+**结论：** 需要有序性和范围查询用 `map/set`；只需要按键快速判断或查值用 `unordered_map/unordered_set`。不要把平均 O(1) 当成无条件保证。
+
+**核心机制：**
+
+- `map`/`set` 通常是平衡树，按键的全序关系组织节点，所以可以按序遍历并支持 `lower_bound`、`upper_bound`。
+- `unordered_map`/`unordered_set` 先计算哈希值，再定位桶；冲突元素放在同一桶中。装载因子过高时会 rehash，重新分布元素。
+- `map` 的键不能通过迭代器修改，否则会破坏树的有序性；需要修改键时应先删除再插入。
+
+**具体使用：**
+
+```cpp
+map<int, int> ordered;
+ordered[10]++;
+auto first = ordered.lower_bound(target); // 第一个 key >= target
+
+unordered_map<string, int> count;
+count.reserve(words.size() * 2);          // 已知规模时减少 rehash
+for (const auto& word : words) {
+    ++count[word];
+}
+```
+
+`set` 适合去重并保持有序，`unordered_set` 适合只判断是否出现。统计频次时用 `unordered_map`；需要输出字典序、找区间内第一个键或按键顺序合并结果时用 `map`。固定范围的小整数键有时直接用 `vector<int>` 更快、更简单。
+
+**适用边界：** 哈希表性能依赖哈希函数、输入分布和装载因子；需要稳定延迟时评估最坏情况和自定义哈希。需要连续内存和更好缓存局部性时，可考虑排序后的 `vector`。
+
+**常见问题：** `unordered_map` 不保证遍历顺序，rehash 会使迭代器失效；`reserve` 是预留桶数量，不是改变元素数量。`operator[]` 查询不存在的键会插入默认值，纯查询应考虑 `find` 或 `contains`（C++20）。
+
+### 5.4 适配器与堆
+
+**结论：** `stack`、`queue` 和 `priority_queue` 是限制接口的容器适配器，重点是约束访问方式，而不是新的底层存储。
+
+**核心机制：** `stack` 只暴露后进先出操作；`queue` 只暴露先进先出操作；`priority_queue` 通常用底层 `vector` 维护堆，默认 `top()` 是最大元素。最小堆写成：
+
+```cpp
+priority_queue<int, vector<int>, greater<int>> minHeap;
+```
+
+堆只保证父节点与子节点的优先级关系，不保证底层容器整体有序；反复 `pop()` 才能按优先级输出。
+
+**具体使用：**
+
+- BFS 用 `queue`，取出队首并把下一层节点放到队尾。
+- 单调栈用 `stack<int>` 保存仍未找到答案的下标，遇到更大/更小元素时弹出已解决的下标。
+- 求最大的 K 个数时维护大小为 K 的小顶堆，堆顶是当前 K 个数中最小的。
+- 合并 K 个有序链表时，把每条链表当前节点放进小顶堆，每次弹出最小节点并推进该链表。
+
+**适用边界：** 只需要当前最值且数据动态到达时，堆比每次完整排序更合适；静态数据只要最终 Top K 时可比较 `nth_element`、固定大小堆和完整排序。优先队列不支持高效删除任意元素或修改任意元素的优先级。
+
+**常见问题：** `priority_queue` 默认是大顶堆；比较器写反会得到相反结果。堆中保存指针时要保证对象仍然存活；保存下标时要注意底层 `vector` 扩容是否改变地址语义。
+
+### 5.5 迭代器、范围和失效规则
+
+**结论：** STL 算法通常接收 `[first, last)` 半开区间。理解迭代器类别和失效规则，才能安全组合容器与算法。
+
+**核心机制：**
+
+- `[first, last)` 包含 `first`，不包含 `last`；空区间满足 `first == last`。
+- 输入、输出、前向、双向、随机访问迭代器能力逐级增强。`sort` 需要随机访问迭代器，不能直接对 `list` 调用 `std::sort`，应使用 `list::sort()` 或先复制到 `vector`。
+- `vector` 扩容通常使全部迭代器、引用和指针失效；中间插入/删除会使受影响位置及之后失效。
+- `list`/`forward_list` 插入通常不影响已有迭代器，删除只使被删除节点失效；关联容器删除只使被删元素失效；哈希容器 rehash 会使迭代器失效。
+
+**具体使用：** 遍历删除时使用容器成员函数返回的新迭代器：
+
+```cpp
+for (auto it = a.begin(); it != a.end(); ) {
+    if (*it < 0) it = a.erase(it);
+    else ++it;
+}
+```
+
+只读区间优先传 `const auto&` 或 `span<const T>`；算法会修改元素时，确认调用方允许修改并检查返回值是否指向新的逻辑终点。
+
+**适用边界：** 迭代器适合表达位置，不适合在容器可能扩容、排序、删除或异步修改时长期保存。多线程下一个线程修改容器、另一个线程读迭代器通常仍是数据竞争。
+
+**常见问题：** `end()` 是尾后位置，不能解引用；不能比较不同容器的迭代器；删除元素后继续 `++it` 可能递增失效迭代器。算法返回的迭代器也不能默认当作元素值。
+
+### 5.6 高频修改算法：删除、去重、变换
+
+**结论：** 很多 STL 算法只重排或覆盖元素，不会改变容器 `size()`；需要删除尾部无效区间时，必须配合容器的 `erase`。
+
+**核心机制：** `remove`/`remove_if` 把保留元素向前移动，并返回新的逻辑尾迭代器；它不知道容器如何删除元素，所以不会自动减少 `vector` 大小。这就是经典的 erase-remove idiom：
+
+```cpp
+a.erase(remove_if(a.begin(), a.end(),
+                  [](int x) { return x < 0; }),
+        a.end());
+```
+
+`unique` 只消除相邻重复项，通常先排序或保证相等元素已经聚集：
+
+```cpp
+sort(a.begin(), a.end());
+a.erase(unique(a.begin(), a.end()), a.end());
+```
+
+**具体使用：** `find`/`count` 做查找和计数，`all_of`/`any_of`/`none_of` 做条件判断，`transform` 做一一映射，`for_each` 做副作用操作，`accumulate` 做折叠/求和。优先用算法表达“对整个范围做同一种操作”。
+
+**适用边界：** `transform` 的输出区间必须有足够空间，或者使用 `back_inserter`；`accumulate` 的初始值类型决定结果类型，求长整型应使用 `0LL`，避免 `int` 溢出。
+
+**常见问题：** `unique` 不是全局去重；`remove` 后忘记 `erase`，遍历整个容器仍会看到逻辑上已删除的尾部元素；谓词中修改容器本身可能导致迭代器失效或未定义行为。
+
+### 5.7 排序、选择和二分算法
+
+**结论：** 先判断目标是“全部有序”“只要第 K 个”“只要分界位置”还是“判定答案是否可行”，再选择 `sort`、`nth_element`、`lower_bound` 或答案二分。
+
+**核心机制：**
+
+| 目标 | 算法 | 机制与复杂度 |
+|---|---|---|
+| 全部排序 | `sort` | 通常 O(n log n)，不保证稳定 |
+| 稳定排序 | `stable_sort` | 保留等价元素相对顺序，额外空间/常数通常更高 |
+| 找第 K 个 | `nth_element` | 只保证第 K 个位置两侧满足分区关系，平均线性 |
+| 第一个不小于目标 | `lower_bound` | 要求区间有序，返回第一个 `>= target` 的位置 |
+| 第一个大于目标 | `upper_bound` | 要求区间有序，返回第一个 `> target` 的位置 |
+| 判断是否存在 | `binary_search` | 只返回布尔值；需要位置时用 `lower_bound` |
+
+```cpp
+sort(a.begin(), a.end(), [](const Item& x, const Item& y) {
+    if (x.score != y.score) return x.score > y.score;
+    return x.id < y.id;
+});
+
+auto it = lower_bound(a.begin(), a.end(), target);
+size_t pos = static_cast<size_t>(it - a.begin());
+```
+
+**具体使用：** 比较器要与数据的排序关系一致；多关键字排序时先写主关键字，再写平局规则。一次性静态数组只要 Top K 时可考虑 `nth_element`；持续流式数据偏向固定大小堆；需要有序输出才完整排序。
+
+**适用边界：** `lower_bound`/`upper_bound` 只能用于已按同一比较器排序的区间；无序数组直接调用会得到无意义结果。`nth_element` 只保证分区，不保证前 K 个内部有序；需要稳定性时使用 `stable_sort` 或显式加入原始下标作为平局键。
+
+**常见问题：** 比较器必须满足严格弱序，不能写成 `a <= b`；修改排序区间后，之前保存的元素位置语义可能失效；计算中点使用 `l + (r - l) / 2` 防止整数溢出。
+
+### 5.8 数值、集合和堆算法速查
+
+**结论：** 标准算法的关键不是背函数名，而是确认输入是否有序、算法是否改变范围、返回值表示什么以及是否需要额外输出空间。
+
+**核心机制与具体使用：**
+
+```cpp
+iota(a.begin(), a.end(), 0);             // 连续填充
+long long sum = accumulate(a.begin(), a.end(), 0LL);
+reverse(a.begin(), a.end());
+rotate(a.begin(), a.begin() + k, a.end());
+partition(a.begin(), a.end(), [](int x) { return x % 2 == 0; });
+make_heap(a.begin(), a.end());
+```
+
+- `min_element`/`max_element`/`minmax_element`：找极值；空区间返回 `end()`，解引用前必须检查。
+- `equal`/`lexicographical_compare`：比较两个范围，注意长度和比较区间必须有效。
+- `set_union`、`set_intersection`、`set_difference`：要求两个输入区间按同一规则排序。
+- `merge`：合并两个有序区间，不是把两个无序数组直接合并排序。
+- `make_heap`、`push_heap`、`pop_heap`、`sort_heap`：手动维护堆；`pop_heap` 只是把堆顶交换到末尾，真正删除还要 `pop_back()`。
+- `next_permutation`：生成字典序下一个排列；已经是最大排列时会重排为最小排列并返回 `false`。
+
+**适用边界：** 算法复杂度随迭代器类别变化：`distance` 对随机访问迭代器是 O(1)，对链表迭代器是 O(n)；`advance` 也会随迭代器类别变化。使用前要看容器的迭代器能力。
+
+**常见问题：** 输出算法使用 `back_inserter` 时目标容器必须支持 `push_back`；使用 `inserter` 时仍要考虑插入位置和迭代器失效。空区间、负数、整数溢出、重复值和比较器边界要单独测试。
+
+### 5.9 刷题中的容器与算法决策模板
+
+1. 需要连续存储、下标访问、排序或大量遍历：先考虑 `vector`。
+2. 需要两端进出：考虑 `deque`；维护窗口最值时通常保存下标。
+3. 需要先进先出、后进先出或动态最值：分别考虑 `queue`、`stack`、`priority_queue`。
+4. 需要按键去重/统计：默认考虑 `unordered_set/map`；需要顺序、范围查询或稳定 O(log n)：考虑 `set/map`。
+5. 需要删除满足条件的元素：通常使用 `remove_if + erase`。
+6. 需要全部有序用 `sort`，只需第 K 个用 `nth_element`，需要边界位置用 `lower_bound/upper_bound`。
+7. 使用任何算法前写清楚：区间是 `[first,last)`、是否已排序、比较器是什么、返回值如何解释、操作后哪些迭代器失效。
+
+**验收标准：** 随机抽取 10 道数组、哈希、栈、堆、排序和二分题，能在 30 秒内说出容器选择和理由；能解释至少一次 `vector` 扩容、`unordered_map` rehash、erase-remove、堆顶维护和 `lower_bound` 边界；代码能通过空输入、重复值、单元素、全相同和答案不存在等测试。
+
+## 六、每道题的关键注释代码
 
 下面代码默认使用：
 
@@ -1003,28 +1222,82 @@ int largestRectangleArea(vector<int> heights) {
 
 ```cpp
 // DFS：先序位置处理当前节点；把处理逻辑放在不同位置即可得到中序/后序。
-void dfs(TreeNode* root) {
+// 二叉树的前序遍历
+void preorder(TreeNode* root, vector<int>& out) {
     if (!root) return;
     // 这里是前序位置
-    dfs(root->left);
+    out.push_back(root->val);
+    preorder(root->left, out);
     // 这里是中序位置
-    dfs(root->right);
+    preorder(root->right, out);
     // 这里是后序位置
 }
 
-// BFS：每轮固定 size，保证这一轮只处理一层。
+vector<int> preorderTraversal(TreeNode* root) {
+    // write code here
+    vector<int> out;
+    preorder(root, out);
+    return out;
+}
+
+// 二叉树的中序遍历
+void inorder(TreeNode* root, vector<int>& out) {
+    if (!root) return;
+    // 这里是前序位置
+    inorder(root->left, out);
+    // 这里是中序位置
+    out.push_back(root->val);
+    inorder(root->right, out);
+    // 这里是后序位置
+}
+
+vector<int> inorderTraversal(TreeNode* root) {
+    // write code here
+    vector<int> out;
+    inorder(root, out);
+    return out;
+}
+
+// 二叉树的后序遍历
+void postorder(TreeNode* root, vector<int>& out) {
+    if (!root) return;
+    // 这里是前序位置
+    postorder(root->left, out);
+    // 这里是中序位置
+    postorder(root->right, out);
+    // 这里是后序位置
+    out.push_back(root->val);
+}
+
+vector<int> postorderTraversal(TreeNode* root) {
+    // write code here
+    vector<int> out;
+    postorder(root, out);
+    return out;
+}
+
+// 二叉树的层序遍历 BFS：每轮固定 size，保证这一轮只处理一层。
 vector<vector<int>> levelOrder(TreeNode* root) {
-    vector<vector<int>> ans; if (!root) return ans;
-    queue<TreeNode*> q; q.push(root);
-    while (!q.empty()) {
-        int size = q.size(); vector<int> level;
-        while (size--) {
-            TreeNode* node = q.front(); q.pop(); level.push_back(node->val);
-            if (node->left) q.push(node->left);
-            if (node->right) q.push(node->right);
+    // 二叉树的层序遍历 BFS：每轮固定 size，保证这一轮只处理一层。
+    vector<vector<int>> ans;
+    if (!root) return ans;
+    // 利用先进先出，队列逐层保存待处理的节点
+    queue<TreeNode*> q;
+    q.push(root);
+
+    while(!q.empty()){
+        int size = q.size();
+        vector<int> level;
+        while(size--){ //处理一层待处理节点：保存 值 和 左右节点
+            TreeNode* node = q.front();
+            q.pop();
+            level.push_back(node->val);
+            if(node->left) q.push(node->left);
+            if(node->right) q.push(node->right);
         }
         ans.push_back(level);
     }
+
     return ans;
 }
 
@@ -1474,7 +1747,7 @@ int shipWithinDays(vector<int>& weights, int days) {
 }
 ```
 
-## 六、10 天执行计划
+## 七、10 天执行计划
 
 | 天数 | 重点 | 必刷任务 | 当天验收 |
 |---|---|---|---|
@@ -1491,7 +1764,7 @@ int shipWithinDays(vector<int>& weights, int days) {
 
 > 时间紧时：先完成 Day 1～7 的 P0；不要为了追求题量跳过错题复写。每天建议 2～3 小时：理解 30 分钟、限时手撕 90 分钟、复盘 30 分钟。
 
-## 七、进度与复盘记录
+## 八、进度与复盘记录
 
 完成度使用：`0` 未开始，`1` 看过但不能写，`2` 能写但不稳定，`3` 限时独立完成并能解释，`4` 随机变式也稳定。
 
@@ -1526,7 +1799,7 @@ int shipWithinDays(vector<int>& weights, int days) {
 复写日期：D+1 / D+3 / D+7
 ```
 
-## 八、面试前速记与通过标准
+## 九、面试前速记与通过标准
 
 - 哈希：查补数、计频次、记前缀和；需要多个答案时不能覆盖历史频次。
 - 双指针/窗口：先找单调性；窗口要说清“表示什么、何时扩张、何时收缩”。
