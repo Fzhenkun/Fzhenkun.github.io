@@ -1788,15 +1788,73 @@ bool wordBreak(string s, vector<string>& wordDict) {
 ### P2-2 二分与综合变式
 
 ```cpp
-// 搜索二维矩阵：每行首元素大于上一行末元素时，可视为一维有序数组。
-bool searchMatrix(vector<vector<int>>& matrix, int target) {
-    int m = matrix.size(), n = matrix[0].size(), l = 0, r = m * n - 1;
-    while (l <= r) {
-        int mid = l + (r - l) / 2, value = matrix[mid / n][mid % n];
-        if (value == target) return true;
-        if (value < target) l = mid + 1; else r = mid - 1;
+//BM17 二分查找-I：区间 [l,r] 闭合，所有分支都排除 mid，避免死循环。
+int search(vector<int>& nums, int target) {
+    // write code here
+    // 二分查找：区间 [l,r] 闭合，所有分支都排除 mid，避免死循环。
+    int l = 0, r = nums.size() - 1;//区间 [l,r] 闭合
+    while (l <= r){
+        int m = l + (r - l)/2;//可以防止 m 为负数
+        if(nums[m] == target){
+            return m;
+        } else if(nums[m] < target) {
+            l = m + 1;
+        } else {
+            r = m - 1;
+        }
+    }
+    return -1;
+}
+
+// BM18 二维数组中的查找：利用二维数组行列递增特性，从数组左下角搜索，向上遍历是减小，向右遍历时增大
+bool Find(int target, vector<vector<int> >& array) {
+    // write code here
+    //利用二维数组行列递增特性，从数组左下角搜索，向上遍历是减小，向右遍历时增大
+    int n = array.size();
+    if(n == 0) return false;
+    int m = array[0].size();
+
+    int i = n - 1, j = 0;//array[i][j]:第 i 行第 j 列元素
+    while(i >= 0 && j < m ){
+        if(array[i][j] == target) return true;
+        else if (array[i][j] < target) j++;//向右遍历时增大
+        else i--;//向上遍历时减小
     }
     return false;
+}
+
+//BM21 旋转数组的最小数字：以右边界 r 为参考系
+int minNumberInRotateArray(vector<int>& nums) {
+    // 以右边界 r 为参考系,一定在最小值右侧
+    int l = 0, r = nums.size() - 1;
+    // 当 left == right 时，循环结束。此时的 left（或 right）指向的就是数组中的最小值的索引。
+    while(l < r){ 
+        int m = l + (r - l)/2;
+
+        if(nums[m] > nums[r]) l = m + 1; //最小的数字在 m 右边
+        else if(nums[m] == nums[r]) r--; //存在重复数字，无法确定，把 r 往左挪一位收缩范围
+        else r = m;//nums[m] < nums[r] 则 m~r 为递增序列说明最小值一定在 m 的左边
+    }
+    return nums[r];
+}
+
+// BM19 寻找峰值：通过 mid 与 mid + 1 不断确定一定存在峰值的区间
+int findPeakElement(vector<int>& nums) {
+    // write code here
+    int l = 0;
+    int r = nums.size() - 1;
+    //二分法
+    while (l < r) {
+        int mid = l + (r - l) / 2;
+        //右边是往下，不一定有坡峰
+        if (nums[mid] > nums[mid + 1])
+            r = mid;
+        //右边是往上，一定能找到波峰
+        else
+            l = mid + 1;
+    }
+    //其中一个波峰
+    return r;
 }
 
 // 排序边界：lower_bound 返回第一个 >= target 的位置，区间始终是 [l, r)。
@@ -1804,7 +1862,7 @@ int lowerBound(vector<int>& nums, int target) {
     int l = 0, r = nums.size();
     while (l < r) {
         int mid = l + (r - l) / 2;
-        if (nums[mid] < target) l = mid + 1;
+        if (nums[mid] < target) l = mid + 1; 
         else r = mid;
     }
     return l; // 可能等于 nums.size()，调用方需判断是否越界
