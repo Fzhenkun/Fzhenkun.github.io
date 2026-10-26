@@ -814,7 +814,7 @@ vector<int> twoSum(vector<int>& numbers, int target) {
     for (int i = 0; i < (int)numbers.size(); ++i) {
         // 如果当前数正好是之前某个数需要的数，答案已找到。
         if (need.count(numbers[i]))
-            return {need[numbers[i]] + 1, i + 1}; // 题目下标从 1 开始
+            return {need[numbers[i]] + 1, i + 1}; // 题目下标从 1 开始，故 + 1
         // 先查后存，避免同一个元素被使用两次。
         need[target - numbers[i]] = i;
     }
@@ -835,7 +835,7 @@ int subarraySum(vector<int>& nums, int k) {
     return ans;
 }
 
-// 缺失的第一个正数：把数字 x 放到下标 x-1，最后第一个错位位置就是答案。
+// 缺失的第一个正数：把数字 x 放到下标 x - 1，最后第一个错位位置就是答案。
 int firstMissingPositive(vector<int>& nums) {
     // //记录所有出现的数字
     // unordered_map<int, int> mp;
@@ -850,7 +850,7 @@ int firstMissingPositive(vector<int>& nums) {
     //     if (mp.find(i) == mp.end()) return i;
     // }
 
-    // return 1;
+    // return n + 1;
     
     int n = nums.size();
     for (int& x : nums) {
@@ -858,7 +858,7 @@ int firstMissingPositive(vector<int>& nums) {
     }
     for (int x : nums) {
         int value = abs(x);
-        if (value <= n) nums[value - 1] = -abs(nums[value - 1]); //把在可能范围的值变成负数
+        if (value <= n) nums[value - 1] = -abs(nums[value - 1]); //把在可能范围的值变成负数, 因为下标是从 0 开始故是 value - 1
     }
     for (int i = 0; i < n; ++i)
         if (nums[i] > 0) return i + 1;
@@ -913,7 +913,7 @@ vector<vector<int>> threeSum(vector<int>& nums) {
     // 三元组（a、b、c）中的元素必须按非降序排列。（即a≤b≤c）
     // 解集中不能包含重复的三元组。
 
-    // // 排序后固定 nums[i]，剩余区间用左右指针。
+    // 排序后固定 nums[i]，剩余区间用左右指针。
     sort(num.begin(), num.end());
     vector<vector<int>> ans;
     for(int i = 0; i < num.size(); i++){
@@ -970,7 +970,7 @@ int lengthOfLongestSubstring(string s) {
     vector<int> last(128, -1); //以字符本身为数组索引记录每个字符出现的最新下标
     int l = 0,ans = 0; //快慢指针。而非左右指针
     for(int r = 0; r < s.size(); r++){
-        //在判断 s[right] 之前，[left, right-1] 一定是一个无重复字符的合法窗口，循环不变量
+        //在判断 s[right] 之前，先移动 l 确定 [left, right-1] 一定是一个无重复字符的合法窗口，循环不变量
         l = max(l, last[s[r]] + 1); // 左端点不能回退
         last[s[r]] = r; //当前字符出现的最新位置就是 right
         ans = max(ans, r - l + 1); //取较大值：已遍历窗口的最大长度，当前无重复字符窗口的长度
