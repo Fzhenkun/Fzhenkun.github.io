@@ -769,14 +769,16 @@ struct TreeNode {
 
 ```cpp
 // 新增：二分查找：区间 [l,r] 闭合，所有分支都排除 mid，避免死循环。
+// 复杂度：时间 O(log n)，额外空间 O(1)。
 int binarySearch(vector<int>& a, int target) {
-    int l = 0, r = (int)a.size() - 1;
+    int l = 0, r = a.size() - 1;
     while (l <= r) { int m = l + (r - l) / 2;
         if (a[m] == target) return m; if (a[m] < target) l = m + 1; else r = m - 1; }
     return -1;
 }
 
 // 新增：峰值：若 a[mid] < a[mid+1]，峰值必在右侧，否则在左侧含 mid 的区间。
+// 复杂度：时间 O(log n)，额外空间 O(1)。
 int findPeak(vector<int>& a) {
     int l = 0, r = a.size() - 1;
     while (l < r) { int m = l + (r - l) / 2; if (a[m] < a[m + 1]) l = m + 1; else r = m; }
@@ -784,6 +786,7 @@ int findPeak(vector<int>& a) {
 }
 
 // 新增：逆序对：归并时左值大于右值，则左半段剩余元素全部构成逆序对。
+// 复杂度：时间 O(n log n)，额外空间 O(n)（临时数组和递归栈）。
 long long mergeCount(vector<int>& a, int l, int r, vector<int>& t) {
     if (l >= r) return 0; int m = (l + r) / 2; long long ans = mergeCount(a,l,m,t)+mergeCount(a,m+1,r,t);
     int i=l,j=m+1,k=l; while(i<=m&&j<=r) if(a[i]<=a[j]) t[k++]=a[i++]; else ans+=m-i+1,t[k++]=a[j++];
@@ -791,11 +794,13 @@ long long mergeCount(vector<int>& a, int l, int r, vector<int>& t) {
 }
 
 // 新增：旋转数组最小值：有重复值时 nums[mid]==nums[r] 只能安全收缩右边界。
+// 复杂度：平均时间 O(log n)，最坏时间 O(n)（大量重复值），额外空间 O(1)。
 int minRotated(vector<int>& a) {
     int l=0,r=a.size()-1; while(l<r){int m=l+(r-l)/2; if(a[m]<a[r])r=m; else if(a[m]>a[r])l=m+1; else --r;} return a[l];
 }
 
 // 新增：版本号：逐段解析数字，缺失段按 0 处理，避免直接按字符串比较。
+// 复杂度：时间 O(L)，L 为两个版本号总字符数，额外空间 O(1)（忽略分段临时变量）。
 int compareVersion(string a, string b) {
     int i=0,j=0; while(i<a.size()||j<b.size()){ long long x=0,y=0;
         while(i<a.size()&&a[i]!='.') x=x*10+a[i++]-'0'; while(j<b.size()&&b[j]!='.') y=y*10+b[j++]-'0';
@@ -809,9 +814,10 @@ int compareVersion(string a, string b) {
 
 ```cpp
 // 两数之和：map 的 key 存“还需要的数”，value 存它出现的位置。
+// 复杂度：平均时间 O(n)，额外空间 O(n)。
 vector<int> twoSum(vector<int>& numbers, int target) {
     unordered_map<int, int> need;
-    for (int i = 0; i < (int)numbers.size(); ++i) {
+    for (int i = 0; i < numbers.size(); ++i) {
         // 如果当前数正好是之前某个数需要的数，答案已找到。
         if (need.count(numbers[i]))
             return {need[numbers[i]] + 1, i + 1}; // 题目下标从 1 开始，故 + 1
@@ -822,6 +828,7 @@ vector<int> twoSum(vector<int>& numbers, int target) {
 }
 
 // 和为 K 的子数组：prefix[j] - prefix[i] = k。
+// 复杂度：平均时间 O(n)，额外空间 O(n)。
 int subarraySum(vector<int>& nums, int k) {
     unordered_map<int, int> freq;
     freq[0] = 1; // 空前缀，支持从下标 0 开始的答案
@@ -836,6 +843,7 @@ int subarraySum(vector<int>& nums, int k) {
 }
 
 // 缺失的第一个正数：把数字 x 放到下标 x - 1，最后第一个错位位置就是答案。
+// 复杂度：时间 O(n)，额外空间 O(1)（原地修改输入数组）。
 int firstMissingPositive(vector<int>& nums) {
     // //记录所有出现的数字
     // unordered_map<int, int> mp;
@@ -866,6 +874,7 @@ int firstMissingPositive(vector<int>& nums) {
 }
 
 // 旋转数组：整体反转，再反转前 k 个和后 n-k 个。
+// 复杂度：时间 O(n)，额外空间 O(1)。
 void reversePart(vector<int>& nums, int l, int r) {
     while (l < r) swap(nums[l++], nums[r--]);
 }
@@ -879,6 +888,7 @@ void rotate(vector<int>& nums, int k) {
 }
 
 // 除自身以外数组的乘积：先把左侧乘积写入答案，再乘上右侧乘积。
+// 复杂度：时间 O(n)，额外空间 O(1)（不计返回数组）。
 vector<int> productExceptSelf(vector<int>& nums) {
     int n = nums.size();
     vector<int> ans(n, 1);
@@ -900,6 +910,7 @@ vector<int> productExceptSelf(vector<int>& nums) {
 
 ```cpp
 // 合并有序数组：从尾部写，避免覆盖 nums1 中还未读取的元素。
+// 复杂度：时间 O(m+n)，额外空间 O(1)。
 void merge(vector<int>& nums1, int m, vector<int>& nums2, int n) {
     int i = m - 1, j = n - 1, write = m + n - 1;
     while (j >= 0) { //A未进行交换的元素保持原位即可
@@ -909,6 +920,7 @@ void merge(vector<int>& nums1, int m, vector<int>& nums2, int n) {
 }
 
 // 三数之和：排序后固定 nums[i]，剩余区间用左右指针。
+// 复杂度：时间 O(n^2)（含排序），额外空间 O(log n) 到 O(n)（取决于排序实现，另不计输出）。
 vector<vector<int>> threeSum(vector<int>& nums) {
     // 三元组（a、b、c）中的元素必须按非降序排列。（即a≤b≤c）
     // 解集中不能包含重复的三元组。
@@ -937,6 +949,7 @@ vector<vector<int>> threeSum(vector<int>& nums) {
 }
 
 // 盛最多水：木桶效应，面积受较短边限制，移动较长边不会带来更优解。
+// 复杂度：时间 O(n)，额外空间 O(1)。
 int maxArea(vector<int>& height) {
     // 盛最多水：木桶效应，面积受较短边限制，移动较长边不会带来更优解。
     int l = 0, r = height.size() - 1, ans = 0;
@@ -950,6 +963,7 @@ int maxArea(vector<int>& height) {
 }
 
 // 接雨水：leftMax/rightMax 是当前位置两侧最高柱子。
+// 复杂度：时间 O(n)，额外空间 O(1)。
 int trap(vector<int>& height) {
     // 接雨水：leftMax/rightMax 是当前位置两侧最高柱子。
     int l = 0, r = arr.size() - 1, leftMax = 0, rightMax = 0, ans = 0;
@@ -966,6 +980,7 @@ int trap(vector<int>& height) {
 }
 
 // 无重复字符最长子串：窗口始终保持无重复。
+// 复杂度：平均时间 O(n)，额外空间 O(min(n, 字符集大小))。
 int lengthOfLongestSubstring(string s) {
     vector<int> last(128, -1); //以字符本身为数组索引记录每个字符出现的最新下标
     int l = 0,ans = 0; //快慢指针。而非左右指针
@@ -979,6 +994,7 @@ int lengthOfLongestSubstring(string s) {
 }
 
 // 字母异位词：固定长度窗口维护 26 个字符的差值。
+// 复杂度：时间 O(|s|+|p|)，额外空间 O(1)（固定 26 个字符计数）。
 vector<int> findAnagrams(string s, string p) {
     // 字母异位词：固定长度窗口维护 26 个字符的差值。
     vector<int> need(26), window(26), ans;
@@ -996,6 +1012,7 @@ vector<int> findAnagrams(string s, string p) {
 
 ```cpp
 // 反转链表：先保存 next，再改变当前节点指向，避免断链。
+// 复杂度：时间 O(n)，额外空间 O(1)。
 ListNode* reverseList(ListNode* head) {
     // 反转链表：先保存 next，再改变当前节点指向，避免断链。
 
@@ -1010,6 +1027,7 @@ ListNode* reverseList(ListNode* head) {
 }
 
 // 相交链表（第一个公共结点）：两个指针分别走 A+B、B+A，最终到达同一个地址或 nullptr。
+// 复杂度：时间 O(m+n)，额外空间 O(1)。
 ListNode* FindFirstCommonNode( ListNode* pHead1, ListNode* pHead2) {
     // 相交链表（第一个公共结点）：两个指针分别走 A+B、B+A，最终到达同一个地址或 nullptr。
     ListNode *p1 = pHead1, *p2 = pHead2;
@@ -1021,19 +1039,21 @@ ListNode* FindFirstCommonNode( ListNode* pHead1, ListNode* pHead2) {
 }
 
 // 环入口：相遇后，一个指针回到头部，两者每次走一步再次相遇即入口。
+// 复杂度：时间 O(n)，额外空间 O(1)。
 ListNode* EntryNodeOfLoop(ListNode* pHead) {
     // 环入口：相遇后，一个指针回到头部，两者每次走一步再次相遇即入口。 L 为环前链长，C 为环长度，x为 fast 离环入口的距离, L = KC - x = (K - 1)C + (C -x)，因此 slow 从头走完 L，fast 正好走完(K - 1)C + (C -x)
     ListNode *slow = pHead, *fast = pHead;
     do {
         if(!fast || !fast->next) return nullptr;
         slow = slow->next; fast = fast->next->next;
-    } while(slow != fast); //相遇则止
+    } while(slow != fast); //相遇则止 使用 do what 避开初始状态时的判断
     slow = pHead; //slow 从头开始走
     while(slow != fast) {slow = slow->next; fast = fast->next; }
     return slow;
 }
 
 // 回文链表：找到后半段并反转，逐个比较前后两半。
+// 复杂度：时间 O(n)，额外空间 O(1)；若恢复后半段，恢复过程仍为 O(n)。
 ListNode* reverseList(ListNode* head){
         ListNode* prev = nullptr;
         while(head){
@@ -1055,7 +1075,7 @@ bool isPalindrome(ListNode* head) {
     }
 
     ListNode* right = reverseList(slow); //slow 可视为链表后半段的头节点
-    //为什么用 right 非空作为判断条件，而不用 left，因为前半段最后一个节点的 next 并没有改变指向
+    //为什么用 right 非空作为判断条件，而不用 left，因为前半段最后一个节点的 next 并没有改变指向，left 遍历完前半链表不会为空，还能继续遍历
     for(ListNode* left = head; right; left = left->next, right = right->next){
         if(left->val != right->val) return false;
     }
@@ -1063,6 +1083,7 @@ bool isPalindrome(ListNode* head) {
 }
 
 // K 个一组翻转：先找到本组尾部，节点不足 K 个就保持原样。
+// 复杂度：时间 O(n)，额外空间 O(1)。
 ListNode* reverseKGroup(ListNode* head, int k) {
     // K 个一组翻转：先找到本组尾部，节点不足 K 个就保持原样。
     ListNode dummy(0);
@@ -1093,6 +1114,7 @@ ListNode* reverseKGroup(ListNode* head, int k) {
 }
 
 // LRU：链表头是最近使用，尾是最久未使用；unordered_map O(1) 找节点。
+// 复杂度：get/put 平均时间 O(1)，额外空间 O(capacity)。
 class Solution {
     int cap;
     list<pair<int, int>> order; // front: 最近使用
@@ -1137,6 +1159,7 @@ class Solution {
 
 ```cpp
 // 最小栈：minStack[i] 表示到当前层为止的最小值。
+// 复杂度：push、pop、top、getMin 均为 O(1)，额外空间 O(n)。
 class MinStack {
     // 最小栈：双栈法，minStack[i] 表示到当前层为止的最小值。
     stack<int> st, minSt;
@@ -1159,6 +1182,7 @@ public:
 };
 
 // 字符串解码：遇到 '[' 保存外层状态，遇到 ']' 恢复并拼接当前层。
+// 复杂度：时间 O(N+L)，N 为输入长度、L 为解码后结果长度；额外空间 O(N+L)。
 string decodeString(string s) {
     // 字符串解码：遇到 '[' 保存外层状态，遇到 ']' 恢复并拼接当前层。
     stack<int> counts;
@@ -1188,9 +1212,10 @@ string decodeString(string s) {
 }
 
 // 每日温度：递减栈保存还没找到更高温度的下标。
+// 复杂度：时间 O(n)（每个下标最多入栈、出栈一次），额外空间 O(n)。
 vector<int> dailyTemperatures(vector<int>& t) {
     vector<int> ans(t.size()); stack<int> st;
-    for (int i = 0; i < (int)t.size(); ++i) {
+    for (int i = 0; i < t.size(); ++i) {
         while (!st.empty() && t[i] > t[st.top()]) {
             int j = st.top(); st.pop();
             ans[j] = i - j; // i 是 j 右侧第一个更高温度
@@ -1201,12 +1226,13 @@ vector<int> dailyTemperatures(vector<int>& t) {
 }
 
 // 柱状图最大矩形：递增栈，出栈时确定右边界；首尾哨兵统一处理剩余柱子。
+// 复杂度：时间 O(n)，额外空间 O(n)。
 int largestRectangleArea(vector<int> heights) {
     heights.insert(heights.begin(), 0);
     heights.push_back(0);
     stack<int> st; st.push(0);
     int ans = 0;
-    for (int i = 1; i < (int)heights.size(); ++i) {
+    for (int i = 1; i < heights.size(); ++i) {
         while (heights[i] < heights[st.top()]) {
             int h = heights[st.top()]; st.pop();
             int width = i - st.top() - 1; // 新栈顶右侧到 i 左侧
@@ -1222,6 +1248,7 @@ int largestRectangleArea(vector<int> heights) {
 
 ```cpp
 // DFS：先序位置处理当前节点；把处理逻辑放在不同位置即可得到中序/后序。
+// 复杂度：时间 O(n)，额外空间 O(h)（递归栈，h 为树高；不计遍历输出）。
 // 二叉树的前序遍历
 void preorder(TreeNode* root, vector<int>& out) {
     if (!root) return;
@@ -1277,6 +1304,7 @@ vector<int> postorderTraversal(TreeNode* root) {
 }
 
 // 二叉树的层序遍历 BFS：每轮固定 size，保证这一轮只处理一层。
+// 复杂度：时间 O(n)，额外空间 O(w)（w 为最大层宽；不计输出）。
 vector<vector<int>> levelOrder(TreeNode* root) {
     // 二叉树的层序遍历 BFS：每轮固定 size，保证这一轮只处理一层。
     vector<vector<int>> ans;
@@ -1302,6 +1330,7 @@ vector<vector<int>> levelOrder(TreeNode* root) {
 }
 
 //按之字形顺序打印二叉树：二叉树的层序遍历，对偶数层进行翻转
+// 复杂度：时间 O(n)，额外空间 O(w)（若逐层翻转，翻转总量仍为 O(n)）。
 vector<vector<int> > Print(TreeNode* pRoot) {
     auto ans = levelOrder(pRoot);
     // 对二叉树的层序遍历结果，对偶数层进行翻转
@@ -1313,6 +1342,7 @@ vector<vector<int> > Print(TreeNode* pRoot) {
 }
 
 // 对称的二叉树：同时比较两棵镜像子树的外侧和内侧节点。
+// 复杂度：时间 O(n)，额外空间 O(h)（递归栈）。
 bool mirror(TreeNode* a, TreeNode* b) {
     if (!a || !b) return a == b;
     // 两棵镜像子树的根节点、外侧和内侧节点（注意 a 的外侧是 a->left， b 则是 b->right）
@@ -1326,6 +1356,7 @@ bool isSymmetrical(TreeNode* pRoot) {
 }
 
 // 判断是不是平衡二叉树：记录每个节点的左右子树高度，若其左右子树高度差的绝对值 > 1，则返回 -1；否则返回左右子树高度的最大值 + 1
+// 复杂度：时间 O(n)，额外空间 O(h)（后序递归栈）。
 int height(TreeNode* p) {
     if (!p) return 0;
     int l = height(p->left), r = height(p->right);
@@ -1342,6 +1373,7 @@ bool IsBalanced_Solution(TreeNode* pRoot) {
 // 判断是不是二叉搜索树：中序遍历结果是否严格递增
 // 二叉搜索树:满足每个节点的左子树上的所有节点均小于当前节点且右子树上的所有节点均大于当前节点
 // 判断是不是二叉搜索树：中序遍历结果是否严格递增
+// 复杂度：时间 O(n)，额外空间 O(h)（不保存完整中序数组）。
 long pre = INT_MIN;
 bool isValidBST(TreeNode* root) {
     if(!root) return true;
@@ -1358,6 +1390,7 @@ bool isValidBST(TreeNode* root) {
 }
 
 // 重建二叉树：前序遍历的首元素必是根节点的值，而中序遍历中根节点将二叉树分成了左右子树两个部分
+// 复杂度：时间 O(n^2)，额外空间最坏 O(n^2)（递归中反复复制左右遍历数组；另含新树节点）。
 TreeNode* reConstructBinaryTree(vector<int>& preOrder, vector<int>& vinOrder) {
     // write code here
     //重建二叉树：前序遍历的首元素必是根节点的值，而中序遍历中根节点将二叉树分成了左右子树两个部分
@@ -1386,6 +1419,7 @@ TreeNode* reConstructBinaryTree(vector<int>& preOrder, vector<int>& vinOrder) {
 }
 
 // BST 第 K 小：BST 的中序遍历天然是升序。
+// 复杂度：时间 O(h+k)（提前找到第 k 个时），最坏 O(n)；额外空间 O(h)。
 int kthSmallest(TreeNode* root, int k) {
     stack<TreeNode*> st;
     while (true) {
@@ -1397,6 +1431,7 @@ int kthSmallest(TreeNode* root, int k) {
 }
 
 // 路径和 III：前缀和 cur-target 的出现次数，就是以当前节点结尾的合法路径数。
+// 复杂度：时间 O(n)，额外空间 O(h)。
 int pathDfs(TreeNode* node, long long cur, long long target,
             unordered_map<long long, int>& freq) {
     if (!node) return 0;
@@ -1414,6 +1449,7 @@ int pathSum(TreeNode* root, int targetSum) {
 }
 
 // 前序 + 中序构造：前序当前段第一个是根，中序中的根切分左右子树。
+// 复杂度：时间 O(n)，额外空间 O(n)（下标表、递归栈和新树节点）。
 TreeNode* build(vector<int>& pre, int pl, int pr, vector<int>& in, int il, int ir,
                 unordered_map<int, int>& where) {
     if (pl > pr) return nullptr;
@@ -1425,11 +1461,12 @@ TreeNode* build(vector<int>& pre, int pl, int pr, vector<int>& in, int il, int i
 }
 TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {
     unordered_map<int, int> where;
-    for (int i = 0; i < (int)inorder.size(); ++i) where[inorder[i]] = i;
+    for (int i = 0; i < inorder.size(); ++i) where[inorder[i]] = i;
     return build(preorder, 0, preorder.size() - 1, inorder, 0, inorder.size() - 1, where);
 }
 
 // 右视图：每层最后弹出的节点就是从右侧看到的节点。
+// 复杂度：时间 O(n)，额外空间 O(w)。
 vector<int> rightSideView(TreeNode* root) {
     vector<int> ans; if (!root) return ans;
     queue<TreeNode*> q; q.push(root);
@@ -1450,6 +1487,7 @@ vector<int> rightSideView(TreeNode* root) {
 
 ```cpp
 // 打家劫舍：prev2/prev1 分别表示前两个位置的最优答案。
+// 复杂度：时间 O(n)，额外空间 O(1)。
 int rob(vector<int>& nums) {
     int prev2 = 0, prev1 = 0;
     for (int money : nums) {
@@ -1461,6 +1499,7 @@ int rob(vector<int>& nums) {
 }
 
 // 零钱兑换：dp[x] 是凑出金额 x 的最少硬币数；不可达用 INF 表示。
+// 复杂度：时间 O(amount * coins.size())，额外空间 O(amount)。
 int coinChange(vector<int>& coins, int amount) {
     const int INF = amount + 1;
     vector<int> dp(amount + 1, INF); dp[0] = 0;
@@ -1471,6 +1510,7 @@ int coinChange(vector<int>& coins, int amount) {
 }
 
 // 完全平方数：最后一个平方数为 j*j，枚举前一个状态。
+// 复杂度：时间 O(n√n)，额外空间 O(n)。
 int numSquares(int n) {
     vector<int> dp(n + 1, n + 1); dp[0] = 0;
     for (int i = 1; i <= n; ++i)
@@ -1480,9 +1520,10 @@ int numSquares(int n) {
 }
 
 // LIS 的 O(n^2) 版本：dp[i] 表示以 nums[i] 结尾的最长递增长度。
+// 复杂度：时间 O(n^2)，额外空间 O(n)。
 int lengthOfLIS(vector<int>& nums) {
     vector<int> dp(nums.size(), 1); int ans = 0;
-    for (int i = 0; i < (int)nums.size(); ++i) {
+    for (int i = 0; i < nums.size(); ++i) {
         for (int j = 0; j < i; ++j)
             if (nums[j] < nums[i]) dp[i] = max(dp[i], dp[j] + 1);
         ans = max(ans, dp[i]);
@@ -1491,6 +1532,7 @@ int lengthOfLIS(vector<int>& nums) {
 }
 
 // 最小路径和：当前位置只能从上方或左方到达。
+// 复杂度：时间 O(mn)，额外空间 O(n)（按较小维度滚动更省空间）。
 int minPathSum(vector<vector<int>>& grid) {
     int m = grid.size(), n = grid[0].size();
     vector<int> dp(n, INT_MAX); dp[0] = 0;
@@ -1504,6 +1546,7 @@ int minPathSum(vector<vector<int>>& grid) {
 }
 
 // LCS：相等时从左上角转移，否则取上方/左方较大值。
+// 复杂度：时间 O(mn)，额外空间 O(mn)。
 int longestCommonSubsequence(string a, string b) {
     int m = a.size(), n = b.size();
     vector<vector<int>> dp(m + 1, vector<int>(n + 1));
@@ -1520,8 +1563,9 @@ int longestCommonSubsequence(string a, string b) {
 
 ```cpp
 // 冒泡排序：每轮把未排序区间的最大值交换到末尾；本轮无交换即可提前结束。
+// 复杂度：平均/最坏时间 O(n^2)，最好时间 O(n)，额外空间 O(1)。
 void bubbleSort(vector<int>& a) {
-    for (int end = (int)a.size() - 1; end > 0; --end) {
+    for (int end = a.size() - 1; end > 0; --end) {
         bool swapped = false;
         for (int i = 0; i < end; ++i) {
             if (a[i] > a[i + 1]) {
@@ -1534,6 +1578,7 @@ void bubbleSort(vector<int>& a) {
 }
 
 // 快排：partition 返回 pivot 最终位置，递归区间必须严格缩小。
+// 复杂度：平均时间 O(n log n)，最坏 O(n^2)，额外空间平均 O(log n)、最坏 O(n)（递归栈）。
 int partition(vector<int>& a, int l, int r) {
     int pivot = a[r], i = l;
     for (int j = l; j < r; ++j)
@@ -1547,6 +1592,7 @@ void quickSort(vector<int>& a, int l, int r) {
 }
 
 // 归并：两个子区间已经有序，每次取当前较小值。
+// 复杂度：时间 O(n log n)，额外空间 O(n)（临时数组和递归栈）。
 void mergeSort(vector<int>& a, int l, int r, vector<int>& temp) {
     if (l >= r) return;
     int mid = l + (r - l) / 2;
@@ -1559,6 +1605,7 @@ void mergeSort(vector<int>& a, int l, int r, vector<int>& temp) {
 }
 
 // 堆排序：先建大顶堆，再把堆顶最大值放到数组末尾。
+// 复杂度：时间 O(n log n)，额外空间 O(log n)（当前递归 heapify 栈；改成迭代可为 O(1)）。
 void heapify(vector<int>& a, int n, int i) {
     int largest = i, l = 2 * i + 1, r = 2 * i + 2;
     if (l < n && a[l] > a[largest]) largest = l;
@@ -1573,16 +1620,18 @@ void heapSort(vector<int>& a) {
 }
 
 // Top K：小顶堆只保留当前最大的 K 个元素，堆顶是第 K 大候选。
+// 复杂度：时间 O(n log k)，额外空间 O(k)。
 int kthLargest(vector<int>& nums, int k) {
     priority_queue<int, vector<int>, greater<int>> pq;
     for (int x : nums) {
         pq.push(x);
-        if ((int)pq.size() > k) pq.pop();
+        if (pq.size() > k) pq.pop();
     }
     return pq.top();
 }
 
 // 数据流中位数：左边用大顶堆，右边用小顶堆，保持左边不少于右边且最多多一个。
+// 复杂度：addNum O(log n)，findMedian O(1)，累计额外空间 O(n)。
 class MedianFinder {
     priority_queue<int> left;
     priority_queue<int, vector<int>, greater<int>> right;
@@ -1604,8 +1653,9 @@ public:
 
 ```cpp
 // 括号生成：右括号数量不能超过左括号，否则前缀已经非法。
+// 复杂度：时间 O(Cn * n)，Cn 为第 n 个卡特兰数（输出每个长度 2n 的字符串），额外空间 O(n)（不计输出）。
 void gen(string cur, int left, int right, int n, vector<string>& ans) {
-    if ((int)cur.size() == 2 * n) { ans.push_back(cur); return; }
+    if (cur.size() == 2 * n) { ans.push_back(cur); return; }
     if (left < n) gen(cur + '(', left + 1, right, n, ans);
     if (right < left) gen(cur + ')', left, right + 1, n, ans);
 }
@@ -1614,8 +1664,9 @@ vector<string> generateParenthesis(int n) {
 }
 
 // 单词搜索：进入格子时标记为已访问，返回时恢复，保证不同路径互不影响。
+// 复杂度：时间 O(mn * 4^L)，L 为单词长度；额外空间 O(L)（递归栈，原地标记棋盘）。
 bool wordDfs(vector<vector<char>>& board, string& word, int i, int j, int k) {
-    if (k == (int)word.size()) return true;
+    if (k == word.size()) return true;
     if (i < 0 || i >= board.size() || j < 0 || j >= board[0].size() ||
         board[i][j] != word[k]) return false;
     char saved = board[i][j]; board[i][j] = '#';
@@ -1634,6 +1685,7 @@ bool exist(vector<vector<char>>& board, string word) {
 }
 
 // 矩阵置零：第一行/列充当标记位，先保存它们原本是否含 0。
+// 复杂度：时间 O(mn)，额外空间 O(1)。
 void setZeroes(vector<vector<int>>& matrix) {
     int m = matrix.size(), n = matrix[0].size();
     bool firstRow = false, firstCol = false;
@@ -1650,6 +1702,7 @@ void setZeroes(vector<vector<int>>& matrix) {
 }
 
 // 螺旋矩阵：每走一条边就收缩对应边界，并检查是否已经越界。
+// 复杂度：时间 O(mn)，额外空间 O(1)（不计输出）。
 vector<int> spiralOrder(vector<vector<int>>& matrix) {
     vector<int> ans; int top = 0, bottom = matrix.size() - 1;
     int left = 0, right = matrix[0].size() - 1;
@@ -1663,6 +1716,7 @@ vector<int> spiralOrder(vector<vector<int>>& matrix) {
 }
 
 // 旋转图像：转置后每一行反转，等价于顺时针旋转 90 度。
+// 复杂度：时间 O(n^2)，额外空间 O(1)。
 void rotateImage(vector<vector<int>>& matrix) {
     int n = matrix.size();
     for (int i = 0; i < n; ++i)
@@ -1675,6 +1729,7 @@ void rotateImage(vector<vector<int>>& matrix) {
 
 ```cpp
 // 买卖股票：当天卖出时，最佳买入点只可能是此前最低价。
+// 复杂度：时间 O(n)，额外空间 O(1)。
 int maxProfit(vector<int>& prices) {
     int minPrice = INT_MAX, ans = 0;
     for (int price : prices) { minPrice = min(minPrice, price); ans = max(ans, price - minPrice); }
@@ -1682,6 +1737,7 @@ int maxProfit(vector<int>& prices) {
 }
 
 // 异或：相同数字互相抵消，最后只剩只出现一次的数字。
+// 复杂度：时间 O(n)，额外空间 O(1)。
 int singleNumber(vector<int>& nums) {
     int ans = 0;
     for (int x : nums) ans ^= x;
@@ -1689,6 +1745,7 @@ int singleNumber(vector<int>& nums) {
 }
 
 // 摩尔投票：candidate 与不同数字抵消；题目若不保证多数存在，需要再次计数验证。
+// 复杂度：时间 O(n)，额外空间 O(1)；若额外验证候选，仍为 O(n)。
 int majorityElement(vector<int>& nums) {
     int candidate = 0, count = 0;
     for (int x : nums) {
@@ -1699,6 +1756,7 @@ int majorityElement(vector<int>& nums) {
 }
 
 // 颜色分类：维护 [0, zero)、[zero, cur) 是 0/1，[cur, two] 未处理，[two+1,n) 是 2。
+// 复杂度：时间 O(n)，额外空间 O(1)。
 void sortColors(vector<int>& nums) {
     int zero = 0, cur = 0, two = nums.size() - 1;
     while (cur <= two) {
@@ -1709,6 +1767,7 @@ void sortColors(vector<int>& nums) {
 }
 
 // 下一个排列：找到最长非增后缀，交换拐点与右侧第一个更大的数，再反转后缀。
+// 复杂度：时间 O(n)，额外空间 O(1)。
 void nextPermutation(vector<int>& nums) {
     int i = nums.size() - 2;
     while (i >= 0 && nums[i] >= nums[i + 1]) --i;
@@ -1725,9 +1784,10 @@ void nextPermutation(vector<int>& nums) {
 
 ```cpp
 // 乘积最大子数组：负数会让最大值和最小值互换，因此两者都要保存。
+// 复杂度：时间 O(n)，额外空间 O(1)。
 int maxProduct(vector<int>& nums) {
     int hi = nums[0], lo = nums[0], ans = nums[0];
-    for (int i = 1; i < (int)nums.size(); ++i) {
+    for (int i = 1; i < nums.size(); ++i) {
         int x = nums[i], oldHi = hi, oldLo = lo;
         hi = max({x, oldHi * x, oldLo * x});
         lo = min({x, oldHi * x, oldLo * x});
@@ -1737,6 +1797,7 @@ int maxProduct(vector<int>& nums) {
 }
 
 // 最长回文子串：区间长度从短到长，dp[l][r] 依赖更短区间。
+// 复杂度：时间 O(n^2)，额外空间 O(n^2)。
 string longestPalindrome(string s) {
     int n = s.size(), bestL = 0, bestLen = 1;
     vector<vector<bool>> dp(n, vector<bool>(n));
@@ -1750,6 +1811,7 @@ string longestPalindrome(string s) {
 }
 
 // 编辑距离：最后一步是插入、删除或替换，取三者最小值。
+// 复杂度：时间 O(mn)，额外空间 O(mn)。
 int minDistance(string a, string b) {
     int m = a.size(), n = b.size(); vector<vector<int>> dp(m + 1, vector<int>(n + 1));
     for (int i = 0; i <= m; ++i) dp[i][0] = i;
@@ -1761,9 +1823,10 @@ int minDistance(string a, string b) {
 }
 
 // 最长有效括号：栈放下标，栈底是当前合法段之前的边界。
+// 复杂度：时间 O(n)，额外空间 O(n)。
 int longestValidParentheses(string s) {
     stack<int> st; st.push(-1); int ans = 0;
-    for (int i = 0; i < (int)s.size(); ++i) {
+    for (int i = 0; i < s.size(); ++i) {
         if (s[i] == '(') st.push(i);
         else {
             st.pop();
@@ -1775,10 +1838,11 @@ int longestValidParentheses(string s) {
 }
 
 // 单词拆分：dp[i] 表示 s[0..i) 能否被字典拆出，枚举最后一个单词。
+// 复杂度：时间最坏 O(n^3)（C++ substr 和字符串哈希会复制/扫描片段），额外空间 O(n + 字典字符总量)。
 bool wordBreak(string s, vector<string>& wordDict) {
     unordered_set<string> dict(wordDict.begin(), wordDict.end());
     vector<bool> dp(s.size() + 1); dp[0] = true;
-    for (int i = 1; i <= (int)s.size(); ++i)
+    for (int i = 1; i <= s.size(); ++i)
         for (int j = 0; j < i; ++j)
             if (dp[j] && dict.count(s.substr(j, i - j))) { dp[i] = true; break; }
     return dp[s.size()];
@@ -1789,6 +1853,7 @@ bool wordBreak(string s, vector<string>& wordDict) {
 
 ```cpp
 //BM17 二分查找-I：区间 [l,r] 闭合，所有分支都排除 mid，避免死循环。
+// 复杂度：时间 O(log n)，额外空间 O(1)。
 int search(vector<int>& nums, int target) {
     // write code here
     // 二分查找：区间 [l,r] 闭合，所有分支都排除 mid，避免死循环。
@@ -1807,6 +1872,7 @@ int search(vector<int>& nums, int target) {
 }
 
 // BM18 二维数组中的查找：利用二维数组行列递增特性，从数组左下角搜索，向上遍历是减小，向右遍历时增大
+// 复杂度：时间 O(行数+列数)，额外空间 O(1)。
 bool Find(int target, vector<vector<int> >& array) {
     // write code here
     //利用二维数组行列递增特性，从数组左下角搜索，向上遍历是减小，向右遍历时增大
@@ -1824,6 +1890,7 @@ bool Find(int target, vector<vector<int> >& array) {
 }
 
 //BM21 旋转数组的最小数字：以右边界 r 为参考系
+// 复杂度：平均时间 O(log n)，最坏时间 O(n)（重复值），额外空间 O(1)。
 int minNumberInRotateArray(vector<int>& nums) {
     // 以右边界 r 为参考系,一定在最小值右侧
     int l = 0, r = nums.size() - 1;
@@ -1839,6 +1906,7 @@ int minNumberInRotateArray(vector<int>& nums) {
 }
 
 // BM19 寻找峰值：通过 mid 与 mid + 1 不断确定一定存在峰值的区间
+// 复杂度：时间 O(log n)，额外空间 O(1)。
 int findPeakElement(vector<int>& nums) {
     // write code here
     int l = 0;
@@ -1858,6 +1926,7 @@ int findPeakElement(vector<int>& nums) {
 }
 
 // 排序边界：lower_bound 返回第一个 >= target 的位置，区间始终是 [l, r)。
+// 复杂度：时间 O(log n)，额外空间 O(1)。
 int lowerBound(vector<int>& nums, int target) {
     int l = 0, r = nums.size();
     while (l < r) {
@@ -1869,6 +1938,7 @@ int lowerBound(vector<int>& nums, int target) {
 }
 
 // 答案二分示例：最小运载能力；capacity 越大，check 越容易成功，具有单调性。
+// 复杂度：时间 O(n log(sum(weights)-max(weights)+1))，额外空间 O(1)。
 bool canShip(vector<int>& weights, int days, int capacity) {
     int usedDays = 1, load = 0;
     for (int w : weights) {
