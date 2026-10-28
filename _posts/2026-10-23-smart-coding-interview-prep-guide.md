@@ -1486,6 +1486,76 @@ vector<int> rightSideView(TreeNode* root) {
 ### P0-6 动态规划基础
 
 ```cpp
+// 斐波那契数列：只保留前两项，当前项根据前两项计算得到。
+int Fibonacci(int n) {
+    // 斐波那契数列：只保留前两项，当前项根据前两项计算得到。
+    int num1 = 1, num2 = 1, num3 = 1;
+    for(int i = 3; i <= n; i++){
+        num3 = num1 + num2; //f(x) = f(x-1) + f(x-2)
+        num1 = num2; num2 = num3;// 更新 f(x-1) 、f(x-2)，方便下次计算 f(x)
+    }
+    return num3;
+}
+
+// BM63 跳台阶：当前台阶的跳法由前两台阶的跳法计算得到
+int jumpFloor(int number) {
+    // write code here
+    int a = 1, b = 1, c = 1;
+    // 应该从台阶 2 开始：青蛙要跳上两级台阶有两种跳法：先跳一级，再跳一级或者直接跳两级。
+    for(int i = 2; i <= number; i++){
+        c = a + b; a = b; b = c;
+    }
+    return c;
+}
+
+// BM66 最长公共子串：
+string LCS(string str1, string str2) {
+    if (str1.empty() || str2.empty()) return "";
+
+    int max_len = 0; // 记录最长公共子串的长度
+    int pos = 0;     // 记录最长公共子串在 str1 中结束时的索引位置
+
+    // dp[i][j] 表示：必须以 str1[i-1] 和 str2[j-1] **结尾**的公共子串长度
+    // 若 str1[i - 1] == str2[j - 1]， dp[i][j] = dp[i - 1][j - 1] + 1;否则连续性断， dp[i][j] = 0
+    vector<vector<int>> dp(str1.length() + 1, vector<int>(str2.length() + 1, 0));
+
+    for (int i = 1; i <= str1.length(); i++) {
+        for (int j = 1; j <= str2.length(); j++) {
+
+            // 如果当前字符相同
+            if (str1[i - 1] == str2[j - 1]) {
+                /*
+                    * 【核心原因解释】：
+                    * 求的是子串（Substring，要求连续），因为必须紧密相连、中间不能断开，
+                    * 所以当前的匹配状态只能从紧邻的上一对字符（即 dp[i-1][j-1]）推导过来，
+                    * 并在其基础上 + 1。
+                    *
+                    * 对比：如果换成求“子序列（Subsequence，不要求连续）”，
+                    * 状态转移方程才会涉及 dp[i-1][j] 或 dp[i][j-1] 的选择（用来跳过某些字符）。
+                    */
+                dp[i][j] = dp[i - 1][j - 1] + 1;
+            } else {
+                /*
+                    * 【子串特性】：
+                    * 子串要求必须连续。一旦当前字符不匹配，连续性就被打破了，
+                    * 所以当前位置的公共子串长度直接归 0。
+                    * （而在求子序列时，不匹配会选择 max(dp[i-1][j], dp[i][j-1]) 继承历史最优解）
+                    */
+                dp[i][j] = 0;
+            }
+
+            // 实时更新全局最大长度和结束位置
+            if (dp[i][j] > max_len) {
+                max_len = dp[i][j];
+                pos = i - 1; // 记录当前匹配字符在 str1 中的结束下标
+            }
+        }
+    }
+
+    // 根据最大长度和结束位置，从 str1 中截取出最长公共子串并返回
+    return str1.substr(pos - max_len + 1, max_len);
+}
+
 // 打家劫舍：prev2/prev1 分别表示前两个位置的最优答案。
 // 复杂度：时间 O(n)，额外空间 O(1)。
 int rob(vector<int>& nums) {
