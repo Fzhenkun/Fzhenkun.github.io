@@ -832,6 +832,8 @@ UV = 受影响设备数或用户数 / 活跃设备数或用户数
 
 ## 参考
 [桌面客户端品质保障](https://bot-man-jl.github.io/articles/?post=2023/PC-App-Usability-Assurance)
+[网易云音乐大前端监控体系（Corona）建设实践-开篇](https://mp.weixin.qq.com/s/gLVlCauJ3JbLxgrxFfZNXg)
+[云音乐桌面端 3.0 改版前端性能优化之旅](https://mp.weixin.qq.com/s/WAkPVXI-Q0GgoZokMPz6jA)
 [性能优化](https://xirain.github.io/techlearn/categories/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/)
 [常见代码规范及如何应用](https://www.zhihu.com/question/512364798/answer/1974142770408085193)
 [Google C++风格指南](https://zh-google-styleguide.readthedocs.io/en/latest/google-cpp-styleguide/contents.html)
