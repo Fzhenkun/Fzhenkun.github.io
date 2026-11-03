@@ -1034,7 +1034,7 @@ int trap(vector<int>& height) {
     // 接雨水：leftMax/rightMax 是当前位置两侧最高柱子。
     int l = 0, r = arr.size() - 1, leftMax = 0, rightMax = 0, ans = 0;
     while (l < r) {
-        if (arr[l] < arr[r]) { //哪边较低则水量由哪边的最高柱决定，当前位置水量 = 较低边的最高柱值 - 当前位置高度
+        if (arr[l] < arr[r]) { //哪边较低则水量由较低边的最高柱决定，当前位置水量 = 较低边的最高柱值 - 当前位置高度
             leftMax = max(leftMax, arr[l]);
             ans += leftMax - arr[l++]; // 左边较低，所以左侧水量已确定
         } else {
@@ -1177,6 +1177,42 @@ ListNode* reverseKGroup(ListNode* head, int k) {
     }
 
     return dummy.next;
+}
+
+// 合并两个排序的链表：哨兵头 + 双指针取小，剩链直接接，空链直接返另一条。
+ListNode* Merge(ListNode* pHead1, ListNode* pHead2) {
+    // write code here
+    // 指针一定要判空，避免访问空指针
+    if (pHead1 == NULL)
+        return pHead2;
+    if (pHead2 == NULL)
+        return pHead1;
+    //加一个虚拟头节点
+    ListNode* head = new ListNode(0);
+    ListNode* cur = head;
+    //两个链表都要不为空
+    while (pHead1 && pHead2) {
+        //取较小值的节点
+        if (pHead1->val <= pHead2->val) {
+            cur->next = pHead1;
+            //只移动取值的指针
+            pHead1 = pHead1->next;
+        } else {
+            cur->next = pHead2;
+            //只移动取值的指针
+            pHead2 = pHead2->next;
+        }
+        //指针后移
+        cur = cur->next;
+    }
+    //哪个链表还有剩，直接连在后面
+    if (pHead1)
+        cur->next = pHead1;
+    else
+        cur->next = pHead2;
+    ListNode* newHead = head->next; delete head;
+    //返回值去掉表头
+    return newHead;
 }
 
 // LRU：链表头是最近使用，尾是最久未使用；unordered_map O(1) 找节点。
